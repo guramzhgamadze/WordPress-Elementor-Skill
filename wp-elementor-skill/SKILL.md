@@ -64,7 +64,7 @@ Quickly assess — **only ask if the answer would change the code**:
 | PHP version | Code uses PHP 8.3+ features like typed class constants, or 8.4+ features like property hooks |
 | WooCommerce / ACF / WPML present | Integration with those systems is required |
 
-**Default assumptions when not stated:** WordPress 6.9.3+ (WP 7.0 scheduled April 9, 2026),
+**Default assumptions when not stated:** WordPress 6.9.4+ (WP 7.0 scheduled April 9, 2026),
 PHP 8.3+ (officially recommended by wordpress.org/about/requirements/; 8.4 and 8.5 = beta
 support label; 8.2 is fully compatible but no longer the recommended default),
 Elementor (free) 3.35.7+ / Elementor Pro 3.35.1+ (V3 Widget_Base API).
@@ -94,9 +94,24 @@ compatibility issues. No multisite, standard single-site install assumed.
 >   `'meta' => ['show_in_rest' => true]` to expose via REST.
 > - **Iframed Editor (PUNTED to WP 7.1):** No action required for WP 7.0. Prepare for 7.1
 >   with `"apiVersion": 3` in block.json.
-> - **WP 7.0 Beta cycle:** Beta 4 released March 10, 2026 (emergency security fast-follow).
->   Beta 5 scheduled March 12, 2026. RC1 scheduled March 19, 2026. Final: April 9, 2026.
->   Source: wordpress.org/news/2026/03/wordpress-6-9-3-and-7-0-beta-4/
+> - **Real-Time Collaboration (RTC):** WP 7.0 introduces simultaneous multi-author block
+>   editing. Technically: HTTP polling sync provider (not WebRTC), CRDT update data stored
+>   persistently in `wp_post_meta` on a new internal post type **`wp_sync_storage`**. Updates
+>   are batched and periodically compacted. Default enable decision finalised around RC2.
+>   **Plugin impact:** If your plugin queries `wp_post_meta` by post type or iterates all
+>   posts/meta, add `'post_type__not_in' => ['wp_sync_storage']` (or equivalent exclusion)
+>   to avoid unexpected hits on internal sync data. Hosts can swap the transport provider
+>   via a `wp-config` constant.
+>   Source: developer.wordpress.org/news/2026/03/whats-new-for-developers-march-2026/
+> - **WP 7.0 Beta cycle:** Beta 4 released **March 10, 2026** (emergency security fast-follow,
+>   same day as WordPress 6.9.2 and 6.9.3). **WordPress 6.9.4** was then released March 11, 2026
+>   after the Security Team found not all fixes in 6.9.2 were fully applied — 6.9.4 is the
+>   current stable release. Beta 5 **released** March 12, 2026. RC1 scheduled March 19, 2026.
+>   Final release: April 9, 2026.
+>   Source: wordpress.org/news/2026/03/wordpress-6-9-3-and-7-0-beta-4/,
+>   wordpress.org/news/2026/03/wordpress-7-0-beta-5/,
+>   wordpress.org/news/2026/03/wordpress-6-9-4-release/,
+>   make.wordpress.org/core/2026/02/12/wordpress-7-0-release-party-schedule/
 
 > 📌 **PHP support labels (WP 6.9):**
 > - PHP 8.0–8.3 = fully compatible. PHP 7.4 = fully compatible.
@@ -105,9 +120,13 @@ compatibility issues. No multisite, standard single-site install assumed.
 > - "Beta support" = actively working toward full compatibility; possible deprecation notices.
 > Source: make.wordpress.org/core/handbook/references/php-compatibility-and-wordpress-versions/
 
-> ⚠️ **Elementor V4 note:** V4 production-ready in Elementor 3.35 (February 2, 2026).
-> V4 PHP extension APIs (custom Atomic Elements) are **not yet publicly documented** — do not
-> use in third-party plugins. All skill code targets V3 `Widget_Base` API. V3 and V4 coexist.
+> ⚠️ **Elementor V4 note:** V4 production-ready (Beta status) in Elementor 3.35 (February 2, 2026).
+> New V4 features in 3.35 include **Components** (reusable layout blocks with global sync +
+> per-instance content overrides) and **Inline Editing** (edit Atomic Heading/Paragraph text
+> directly on canvas). V4 PHP extension APIs (custom Atomic Elements / Components) are
+> **not yet publicly documented** — do not use in third-party plugins. All skill code targets
+> V3 `Widget_Base` API. V3 and V4 coexist; official 4.0 release is upcoming (V4 will become
+> default for new sites on 4.0 — no forced migration for existing V3 widgets).
 
 ---
 

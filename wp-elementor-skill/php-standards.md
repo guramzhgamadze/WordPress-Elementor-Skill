@@ -30,7 +30,7 @@ $url     = sanitize_url( wp_unslash( $_POST['redirect'] ?? '' ) );
 echo esc_html( $name );
 echo esc_attr( $name );          // inside HTML attributes
 echo esc_url( $url );            // href, src
-echo wp_kces_post( $content );   // rich HTML content
+echo wp_kses_post( $content );   // rich HTML content
 
 // NONCES — on every form and AJAX action
 // Render:
