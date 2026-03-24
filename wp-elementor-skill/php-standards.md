@@ -14,9 +14,13 @@ $email   = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
 $id      = absint( $_GET['post_id'] ?? 0 );
 $content = wp_kses_post( wp_unslash( $_POST['content'] ?? '' ) );
 
-// ✅ sanitize_url() is the canonical WP 6.1+ function for URL input sanitization.
-// esc_url_raw() still works (it's now a wrapper for sanitize_url()) but sanitize_url()
-// is the recommended name: "use sanitize_ to sanitize, esc_ to escape".
+// ✅ sanitize_url() is the canonical function for URL input sanitization.
+// History: existed since WP 2.3.1, deprecated in WP 2.8.0 in favour of esc_url_raw(),
+// then UN-DEPRECATED and restored as canonical in WP 5.9.0 to honour the naming convention
+// "use sanitize_ to sanitize, esc_ to escape". esc_url_raw() is now an alias for sanitize_url().
+// Use sanitize_url() — it is correct, un-deprecated, and WPCS-clean on WP 5.9+.
+// Source: make.wordpress.org/plugins/2022/05/25/rejoice-to-sanitize_url/
+//         developer.wordpress.org/reference/functions/sanitize_url/ (restored since 5.9)
 //
 // ⚠️ WP 6.9 BEHAVIOUR CHANGE — esc_url(), esc_url_raw(), and sanitize_url():
 // In WP 6.8 and earlier, a protocol-less URL (e.g. "example.com/path") was prepended
@@ -197,8 +201,14 @@ if ( wp_check_password( $plain_password, $stored_hash, $user->ID ) ) {
     if ( wp_password_needs_rehash( $stored_hash ) ) {
         // ✅ wp_set_password() takes the PLAINTEXT password and hashes internally.
         // Do NOT pre-hash with wp_hash_password() — double-hashing permanently locks users out.
-        // wp_set_password() is preferred over wp_update_user() for rehash-only flows because
-        // it does not trigger the password-change email notification.
+        //
+        // ✅ wp_set_password() does NOT send any password-change email and does NOT fire
+        // 'after_password_reset'. It only fires the 'wp_set_password' action (WP 6.2+).
+        // 'after_password_reset' is fired by WordPress's higher-level reset_password()
+        // function, which calls wp_set_password() internally. Calling wp_set_password()
+        // directly (as in this rehash flow) does not trigger that hook at all.
+        // Source: developer.wordpress.org/reference/functions/wp_set_password/
+        //         developer.wordpress.org/reference/functions/reset_password/
         //
         // ⚠️ SESSION INVALIDATION: wp_set_password() invalidates ALL existing auth cookies
         // for this user immediately. Call wp_set_auth_cookie() afterward to re-issue a valid

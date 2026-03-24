@@ -32,6 +32,13 @@
         aria-expanded="false">
     <?php esc_html_e( 'Open Filters', 'myplugin' ); ?>
 </button>
+
+<!--
+    ✅ Backdrop overlay — click to close the panel.
+    Placed AFTER the panel (not inside it) so it sits behind the panel in stacking context.
+    Controlled by the same JS open/close functions via the 'myplugin-offcanvas--hidden' class.
+-->
+<div class="myplugin-offcanvas__backdrop" aria-hidden="true"></div>
 ```
 
 ```css
@@ -74,6 +81,23 @@
   transform: translateX(-100%);
   /* Do NOT repeat transition here — the base class handles both directions */
 }
+
+/* ── Backdrop overlay ───────────────────────────────────── */
+.myplugin-offcanvas__backdrop {
+  position: fixed;
+  inset: 0;                     /* covers full viewport */
+  background: rgba( 0, 0, 0, 0.5 );
+  z-index: 9998;                /* one below the panel (9999) */
+  opacity: 1;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  visibility: visible;
+}
+/* Hidden state — toggled by JS alongside the panel */
+.myplugin-offcanvas__backdrop.myplugin-offcanvas__backdrop--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
 ```
 
 ```js
@@ -91,10 +115,13 @@
   // ✅ a[href] not [href] — only <a> elements with an href are natively keyboard focusable
   const focusable = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
+  const backdrop = document.querySelector( '.myplugin-offcanvas__backdrop' );
+
   const open = () => {
     panel.classList.remove( HIDDEN_CLASS );
     panel.inert = false;                        // ✅ re-enable keyboard + AT access
     trigger.setAttribute( 'aria-expanded', 'true' );
+    backdrop?.classList.remove( 'myplugin-offcanvas__backdrop--hidden' );
 
     // ✅ iOS Safari scroll lock — overflow:hidden on body does NOT prevent background
     // scroll on iOS Safari. Store scroll position, fix body in place, restore on close.
@@ -118,14 +145,18 @@
     document.body.style.position  = '';
     document.body.style.top       = '';
     document.body.style.width     = '';
-    delete document.body.dataset.scrollY;
+    // ✅ Restore scroll BEFORE deleting dataset.scrollY — prevents data loss on rapid
+    // open/close cycles where a second panel.open() could read a deleted value.
     window.scrollTo( 0, scrollY );
+    delete document.body.dataset.scrollY;
 
     trigger.focus();
+    backdrop?.classList.add( 'myplugin-offcanvas__backdrop--hidden' );
   };
 
-  // Initialize panel as inert (hidden on load)
+  // Initialize panel and backdrop as hidden on load
   panel.inert = true;
+  backdrop?.classList.add( 'myplugin-offcanvas__backdrop--hidden' );
 
   // Focus trap — Tab cycles within open panel
   // ✅ querySelectorAll runs fresh on each keydown so dynamically injected controls
@@ -146,5 +177,7 @@
   panel.addEventListener( 'keydown', ( e ) => { if ( e.key === 'Escape' ) closePanel(); } );
   trigger.addEventListener( 'click', open );
   close?.addEventListener( 'click', closePanel );
+  // ✅ Backdrop click closes the panel — matches native dialog behaviour
+  backdrop?.addEventListener( 'click', closePanel );
 } )();
 ```

@@ -176,6 +176,22 @@ add_action( 'elementor/widgets/register', function( \Elementor\Widgets_Manager $
 
 ## Dynamic Tag Registration
 
+> **Dynamic Tag Category Reference (as of Elementor 3.35):**
+>
+> | Constant | Value | Available in | Use for |
+> |---|---|---|---|
+> | `Module::TEXT_CATEGORY` | `'text'` | **Free** | Single-line text fields |
+> | `Module::URL_CATEGORY` | `'url'` | **Free** | URL/link controls |
+> | `Module::IMAGE_CATEGORY` | `'image'` | **Free** | Media/image controls |
+> | `Module::MEDIA_CATEGORY` | `'media'` | **Free** | Alias for IMAGE_CATEGORY |
+> | `Module::NUMBER_CATEGORY` | `'number'` | **Free** | Slider/number controls |
+> | `Module::COLOR_CATEGORY` | `'color'` | **Free** | Color controls |
+> | `Module::POST_GROUP` | `'post'` | **Pro only** | ⚠️ Fatal error without Pro |
+> | `Module::SITE_GROUP` | `'site'` | **Pro only** | ⚠️ Fatal error without Pro |
+>
+> Always use the class constant (`Module::TEXT_CATEGORY`) not the raw string — the string
+> values are internal and could change. Source: `elementor/modules/dynamic-tags/module.php`
+
 ```php
 // ✅ Type hint \Elementor\Core\DynamicTags\Manager (different from Widgets_Manager)
 add_action( 'elementor/dynamic_tags/register', function( \Elementor\Core\DynamicTags\Manager $manager ) {
@@ -292,6 +308,9 @@ class MyPlugin_Form_Action extends \ElementorPro\Modules\Forms\Classes\Action_Ba
         return [ 'myplugin-form-css' ];
     }
 
+    // ✅ Type hint omitted intentionally — Elementor does not expose a public interface/class
+    // for the $widget parameter. Using \Elementor\Widget_Base is the closest match but
+    // Elementor passes its internal form widget class. Omit type hint to avoid TypeError.
     public function register_settings_section( $widget ): void {
         $widget->start_controls_section( 'myplugin_action_section', [
             'label'     => esc_html__( 'My Plugin', 'myplugin' ),
@@ -310,6 +329,10 @@ class MyPlugin_Form_Action extends \ElementorPro\Modules\Forms\Classes\Action_Ba
         return $element;
     }
 
+    // $record = \ElementorPro\Modules\Forms\Classes\Form_Record
+    // $ajax_handler = \ElementorPro\Modules\Forms\Classes\Ajax_Handler
+    // Both classes are Pro-only — do NOT type hint them directly here or PHP
+    // will throw a fatal error on sites where Elementor Pro is inactive.
     public function run( $record, $ajax_handler ): void {
         $settings = $record->get( 'form_settings' );
         $endpoint = sanitize_url( $settings['myplugin_endpoint'] ?? '' );

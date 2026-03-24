@@ -285,3 +285,34 @@ const fetchItem = async ( itemId ) => {
   }
 };
 ```
+
+---
+
+## Elementor Widget Registration Reminder
+
+When registering an Elementor widget from a plugin (via `elementor/widgets/register`),
+**every widget class must implement these two methods** — they are required for V4
+compatibility and output caching. Forgetting them in any widget (including those scaffolded
+from this file) will cause rendering issues and PHP warnings in future Elementor versions.
+
+```php
+// ✅ REQUIRED on EVERY new widget — removes the redundant inner wrapper div.
+// Elementor 3.26+. Without this, the deprecated .elementor-widget-container wrapper
+// is still rendered, breaking Optimized Markup mode and V4 Atomic elements.
+// Return true ONLY if your render() output physically requires that wrapper.
+// Source: developers.elementor.com/docs/widgets/widget-inner-wrapper/
+public function has_widget_inner_wrapper(): bool {
+    return false;
+}
+
+// ✅ REQUIRED on EVERY widget — controls Elementor output caching.
+// Return false  → Elementor may cache the rendered HTML (safe for static/non-user-specific output).
+// Return true   → Elementor skips caching (required if output varies per user, session, or time).
+// Source: developers.elementor.com/docs/widgets/widget-output-caching/
+protected function is_dynamic_content(): bool {
+    return false; // change to true if output is user/session/time-specific
+}
+```
+
+> **See `elementor-patterns.md` for the complete widget boilerplate**, and the relevant
+> `widget-*.md` file for control patterns matching Elementor's native widgets.

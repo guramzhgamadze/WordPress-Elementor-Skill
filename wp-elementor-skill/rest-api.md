@@ -56,6 +56,44 @@ function myplugin_rest_permissions( WP_REST_Request $request ): bool|WP_Error {
     return true;
 }
 
+// ─── REST API Nonce — Authenticating JS Fetch Calls ─────────────────────────
+//
+// WordPress REST API uses a SEPARATE nonce from AJAX (wp_ajax_*).
+// The REST nonce is generated with: wp_create_nonce( 'wp_rest' )
+// It must be sent as the X-WP-Nonce request header (not a POST body param).
+//
+// ✅ CORRECT — pass nonce to JS via wp_add_inline_script():
+// $data = wp_json_encode( [ 'nonce' => wp_create_nonce( 'wp_rest' ), 'restUrl' => rest_url() ] );
+// wp_add_inline_script( 'myplugin-js', 'const mypluginRest = ' . $data . ';', 'before' );
+//
+// ✅ CORRECT — JS fetch with nonce header:
+// const res = await fetch( mypluginRest.restUrl + 'myplugin/v1/items/1', {
+//   headers: { 'X-WP-Nonce': mypluginRest.nonce, 'Content-Type': 'application/json' },
+// } );
+//
+// ⚠️ REST nonces expire after 24 hours. If your SPA/page stays open overnight, handle
+// 403 (rest_cookie_invalid_nonce) responses by fetching a fresh nonce and retrying:
+//
+// ✅ CORRECT nonce refresh — WordPress core registers wp_ajax_rest_nonce() on the
+// 'wp_ajax_rest_nonce' action (note: underscore, not hyphen). Calling this endpoint
+// with logged-in credentials returns a fresh wp_rest nonce as plain text:
+// Source: developer.wordpress.org/reference/functions/wp_ajax_rest_nonce/
+//
+// const refreshed  = await fetch( ajaxUrl + '?action=rest_nonce', { credentials: 'include' } );
+// mypluginRest.nonce = ( await refreshed.text() ).trim();
+// // then retry the original request with the new nonce header
+//
+// ⚠️ The action is 'rest_nonce' (underscore) not 'rest-nonce' (hyphen).
+// ⚠️ User must be logged in — this endpoint returns a nonce for cookie-based auth only.
+//
+// ⚠️ Public endpoints (no authentication required): use '__return_true' as permission_callback.
+// Never use '__return_false' — that permanently blocks all access including admins.
+// register_rest_route( 'myplugin/v1', '/public-data', [
+//     'methods'             => WP_REST_Server::READABLE,
+//     'callback'            => 'myplugin_public_callback',
+//     'permission_callback' => '__return_true',
+// ] );
+
 function myplugin_rest_get_item( WP_REST_Request $request ): WP_REST_Response|WP_Error {
     $id   = $request->get_param( 'id' );
     $post = get_post( $id );

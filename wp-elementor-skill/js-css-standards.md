@@ -38,7 +38,11 @@
   window.addEventListener( 'elementor/frontend/init', () => {
     window.elementorFrontend.hooks.addAction(
       'frontend/element_ready/myplugin-widget.default',
-      ( $scope ) => init( $scope[0] )
+      ( $scope ) => {
+        // ✅ Guard against undefined scope — can happen during lazy-loaded section reveal
+        if ( ! $scope || ! $scope[0] ) return;
+        init( $scope[0] );
+      }
     );
   } );
 } )();
