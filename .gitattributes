@@ -1,0 +1,9 @@
+# 1. Ignore EVERYTHING in the repository by default
+* export-ignore
+
+# 2. Un-ignore the wp-elementor-skill directory and everything inside it
+wp-elementor-skill/ -export-ignore
+wp-elementor-skill/** -export-ignore
+
+# 3. Un-ignore the LICENSE file
+LICENSE -export-ignore
