@@ -9,15 +9,20 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
+    <!-- HERO -->
     <header class="bg-indigo-900 text-white py-20">
         <div class="max-w-5xl mx-auto px-6 text-center">
+            <div class="inline-flex items-center gap-2 bg-indigo-800 text-indigo-200 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
+                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                Updated March 25, 2026 &mdash; Round 17 Audit
+            </div>
             <h1 class="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">
-                WordPress & Elementor Pro <span class="text-indigo-400">Claude AI Skill</span>
+                WordPress &amp; Elementor Pro <span class="text-indigo-400">Claude AI Skill</span>
             </h1>
             <p class="text-xl md:text-2xl font-light text-indigo-200 mb-10 max-w-3xl mx-auto">
-                A highly specialized, modular prompt engineering framework that turns Claude AI into a Senior WordPress Developer.
+                A highly specialized, modular prompt engineering framework that turns Claude AI into a Senior WordPress &amp; Elementor Pro developer.
             </p>
-            <div class="flex justify-center gap-4">
+            <div class="flex flex-wrap justify-center gap-4">
                 <a href="#features" class="bg-indigo-500 hover:bg-indigo-400 text-white font-semibold py-3 px-8 rounded-lg transition duration-300">
                     Explore Features
                 </a>
@@ -25,79 +30,260 @@
                     <i class="fab fa-github"></i> View on GitHub
                 </a>
             </div>
+            <!-- Stats row -->
+            <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+                <div class="bg-indigo-800/50 rounded-xl p-4">
+                    <div class="text-3xl font-extrabold text-white">44</div>
+                    <div class="text-indigo-300 text-sm mt-1">Documentation files</div>
+                </div>
+                <div class="bg-indigo-800/50 rounded-xl p-4">
+                    <div class="text-3xl font-extrabold text-white">35</div>
+                    <div class="text-indigo-300 text-sm mt-1">Widget boilerplates</div>
+                </div>
+                <div class="bg-indigo-800/50 rounded-xl p-4">
+                    <div class="text-3xl font-extrabold text-white">17</div>
+                    <div class="text-indigo-300 text-sm mt-1">Audit rounds</div>
+                </div>
+                <div class="bg-indigo-800/50 rounded-xl p-4">
+                    <div class="text-3xl font-extrabold text-white">56+</div>
+                    <div class="text-indigo-300 text-sm mt-1">Bugs fixed</div>
+                </div>
+            </div>
         </div>
     </header>
 
+    <!-- WHY -->
     <section class="py-16 bg-white">
         <div class="max-w-5xl mx-auto px-6">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-slate-900">Why Use This Skill?</h2>
-                <p class="mt-4 text-slate-600 max-w-2xl mx-auto">Generic AI models often output outdated WordPress code, use deprecated jQuery, or ignore security protocols. This skill forces Claude to adhere to strict, modern Standard Operating Procedures (SOPs).</p>
+                <p class="mt-4 text-slate-600 max-w-2xl mx-auto">Generic AI models often output outdated WordPress code, use deprecated jQuery, or ignore security protocols. This skill forces Claude to adhere to strict, modern Standard Operating Procedures (SOPs) — verified against official sources after every release.</p>
             </div>
-            
             <div class="grid md:grid-cols-3 gap-8 text-center">
                 <div class="p-6 bg-slate-50 rounded-xl border border-slate-100 shadow-sm">
                     <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
                         <i class="fas fa-microchip"></i>
                     </div>
                     <h3 class="font-bold text-lg mb-2">Smart Context Routing</h3>
-                    <p class="text-slate-600 text-sm">Uses a `SKILL.md` router map to load only the specific documentation needed (e.g., Widget rules vs REST API rules), saving context window space.</p>
+                    <p class="text-slate-600 text-sm">A <code class="bg-slate-200 px-1 rounded">SKILL.md</code> router loads only the documentation relevant to your task — widget boilerplates, REST API rules, or WooCommerce HPOS patterns — keeping the context window lean and responses fast.</p>
                 </div>
                 <div class="p-6 bg-slate-50 rounded-xl border border-slate-100 shadow-sm">
                     <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
                         <i class="fas fa-shield-alt"></i>
                     </div>
                     <h3 class="font-bold text-lg mb-2">Ironclad Security</h3>
-                    <p class="text-slate-600 text-sm">Strict enforcement of data sanitization (e.g., forcing `wp_unslash()`), output escaping, and modern hashing protocols.</p>
+                    <p class="text-slate-600 text-sm">Enforces <code class="bg-slate-200 px-1 rounded">wp_unslash()</code> before every sanitizer, WP 6.8+ bcrypt/BLAKE2b hashing, nonce verification on every AJAX handler, and <code class="bg-slate-200 px-1 rounded">WP_Error</code> on REST permission failures — never a bare <code class="bg-slate-200 px-1 rounded">false</code>.</p>
                 </div>
                 <div class="p-6 bg-slate-50 rounded-xl border border-slate-100 shadow-sm">
                     <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
                         <i class="fas fa-bolt"></i>
                     </div>
-                    <h3 class="font-bold text-lg mb-2">Modern Standards</h3>
-                    <p class="text-slate-600 text-sm">Generates code strictly for PHP 8.3+, WordPress 6.9+, and ES6+ Vanilla JavaScript. Zero jQuery unless absolutely forced by WP Core.</p>
+                    <h3 class="font-bold text-lg mb-2">Always Up to Date</h3>
+                    <p class="text-slate-600 text-sm">Targets PHP 8.3+, WordPress 6.9.4+, Elementor 3.35.7+, and WooCommerce 8.2+. Covers WP 7.0 RC details, WC 10.7 HPOS changes, and Elementor V4 compatibility rules. Audited 17 times against official sources.</p>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- FEATURES -->
     <section id="features" class="py-16 bg-slate-50 border-t border-slate-200">
         <div class="max-w-5xl mx-auto px-6">
             <h2 class="text-3xl font-bold text-slate-900 mb-10 text-center">Repository Capabilities</h2>
-            
             <div class="space-y-6">
+
                 <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
-                    <div class="md:w-1/3 flex justify-center">
+                    <div class="md:w-1/4 flex justify-center">
                         <i class="fab fa-elementor text-6xl text-[#92003B]"></i>
                     </div>
-                    <div class="md:w-2/3">
-                        <h4 class="text-xl font-bold text-slate-800 mb-2">Massive Elementor Library</h4>
-                        <p class="text-slate-600">Includes over 30 specific markdown recipes for building Elementor Widgets (Accordions, Maps, Carousels), Dynamic Tags, Forms, and Theme Builder conditions natively and efficiently.</p>
+                    <div class="md:w-3/4">
+                        <h4 class="text-xl font-bold text-slate-800 mb-2">35 Widget Boilerplate Files</h4>
+                        <p class="text-slate-600">Every Elementor native widget type has a dedicated boilerplate: correct control IDs, selectors, render logic, and JavaScript patterns — verified against Elementor's own source. Covers Button, Image, Carousel, Accordion, Tabs, Video, Maps, Rating, and 27 more.</p>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
-                    <div class="md:w-1/3 flex justify-center">
+                    <div class="md:w-1/4 flex justify-center">
                         <i class="fab fa-php text-6xl text-[#777BB4]"></i>
                     </div>
-                    <div class="md:w-2/3">
-                        <h4 class="text-xl font-bold text-slate-800 mb-2">PHP & JS/CSS Mastery</h4>
-                        <p class="text-slate-600">Dictates precise sequence handling for API failures (`WP_Error`), transient caching, ES6+ IIFE patterns, and secure PHP-to-JS data passing (`wp_add_inline_script`).</p>
+                    <div class="md:w-3/4">
+                        <h4 class="text-xl font-bold text-slate-800 mb-2">PHP &amp; JS/CSS Mastery</h4>
+                        <p class="text-slate-600">Precise sequence handling for API failures (<code class="bg-slate-100 px-1 rounded">WP_Error</code>), transient caching, ES6+ IIFE patterns, and secure PHP-to-JS data passing (<code class="bg-slate-100 px-1 rounded">wp_add_inline_script</code>). Zero jQuery unless genuinely forced by WP core. No deprecated <code class="bg-slate-100 px-1 rounded">wp_localize_script()</code> for data.</p>
                     </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
+                    <div class="md:w-1/4 flex justify-center">
+                        <i class="fab fa-wordpress text-6xl text-[#21759B]"></i>
+                    </div>
+                    <div class="md:w-3/4">
+                        <h4 class="text-xl font-bold text-slate-800 mb-2">WooCommerce HPOS-Ready</h4>
+                        <p class="text-slate-600">Full HPOS compatibility declaration pattern, HPOS-native order API rules (<code class="bg-slate-100 px-1 rounded">wc_get_order()</code>, <code class="bg-slate-100 px-1 rounded">get_meta()</code>, <code class="bg-slate-100 px-1 rounded">update_meta_data()</code>), and WC 10.7 "sync on read" deprecation guidance — so your code is ready before the April 2026 release.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
+                    <div class="md:w-1/4 flex justify-center">
+                        <i class="fas fa-universal-access text-6xl text-indigo-500"></i>
+                    </div>
+                    <div class="md:w-3/4">
+                        <h4 class="text-xl font-bold text-slate-800 mb-2">Accessibility &amp; Performance Built In</h4>
+                        <p class="text-slate-600">WCAG 2.2 AA checklist, accessible off-canvas panels with <code class="bg-slate-100 px-1 rounded">inert</code> attribute (set in HTML, not just JS), focus trap, iOS Safari scroll lock, and a complete frontend performance checklist covering LCP, Speculative Loading, and the WP 6.9+ IE conditional comment removal.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- VERSION TABLE -->
+    <section class="py-16 bg-white border-t border-slate-200">
+        <div class="max-w-5xl mx-auto px-6">
+            <h2 class="text-3xl font-bold text-slate-900 mb-4 text-center">Environment Targets</h2>
+            <p class="text-slate-500 text-center mb-10">All code patterns are validated against these versions. Verified against official sources only — no guesswork.</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
+                    <thead class="bg-indigo-900 text-white">
+                        <tr>
+                            <th class="px-5 py-3 text-left font-semibold">Component</th>
+                            <th class="px-5 py-3 text-left font-semibold">Version</th>
+                            <th class="px-5 py-3 text-left font-semibold">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <tr class="bg-white hover:bg-slate-50">
+                            <td class="px-5 py-3 font-medium">WordPress</td>
+                            <td class="px-5 py-3"><span class="bg-green-100 text-green-800 font-mono text-xs px-2 py-0.5 rounded">6.9.4+</span></td>
+                            <td class="px-5 py-3 text-slate-600">WP 7.0 shipping April 9, 2026. RC1 released March 24. PHP 7.2/7.3 dropped; new minimum PHP 7.4.</td>
+                        </tr>
+                        <tr class="bg-slate-50 hover:bg-slate-100">
+                            <td class="px-5 py-3 font-medium">PHP</td>
+                            <td class="px-5 py-3"><span class="bg-green-100 text-green-800 font-mono text-xs px-2 py-0.5 rounded">8.3+</span></td>
+                            <td class="px-5 py-3 text-slate-600">Officially recommended. PHP 8.4 &amp; 8.5 = beta support label.</td>
+                        </tr>
+                        <tr class="bg-white hover:bg-slate-50">
+                            <td class="px-5 py-3 font-medium">Elementor (free)</td>
+                            <td class="px-5 py-3"><span class="bg-green-100 text-green-800 font-mono text-xs px-2 py-0.5 rounded">3.35.7+</span></td>
+                            <td class="px-5 py-3 text-slate-600">V3 <code class="bg-slate-200 px-1 rounded text-xs">Widget_Base</code> API. V4 in beta — PHP extension API not yet public.</td>
+                        </tr>
+                        <tr class="bg-slate-50 hover:bg-slate-100">
+                            <td class="px-5 py-3 font-medium">Elementor Pro</td>
+                            <td class="px-5 py-3"><span class="bg-green-100 text-green-800 font-mono text-xs px-2 py-0.5 rounded">3.35.1+</span></td>
+                            <td class="px-5 py-3 text-slate-600">Independent version number from free. Always check both when diagnosing issues.</td>
+                        </tr>
+                        <tr class="bg-white hover:bg-slate-50">
+                            <td class="px-5 py-3 font-medium">WooCommerce</td>
+                            <td class="px-5 py-3"><span class="bg-yellow-100 text-yellow-800 font-mono text-xs px-2 py-0.5 rounded">8.2+ → 10.7</span></td>
+                            <td class="px-5 py-3 text-slate-600">HPOS default-on since 8.2. WC 10.7 (April 14, 2026) disables "sync on read" — HPOS API migration required.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- FILE MAP -->
+    <section class="py-16 bg-slate-50 border-t border-slate-200">
+        <div class="max-w-5xl mx-auto px-6">
+            <h2 class="text-3xl font-bold text-slate-900 mb-4 text-center">44-File Knowledge Base</h2>
+            <p class="text-slate-500 text-center mb-10">9 core reference files + 35 widget boilerplates. Claude loads only what each task needs.</p>
+            <div class="grid md:grid-cols-2 gap-6">
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-layer-group text-indigo-500"></i> Core Reference Files
+                    </h3>
+                    <ul class="space-y-2 text-sm text-slate-700">
+                        <li class="flex items-start gap-2"><code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs shrink-0">SKILL.md</code> Router, golden rules, architecture decision tree</li>
+                        <li class="flex items-start gap-2"><code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs shrink-0">scaffolding.md</code> Plugin scaffold, CPT, AJAX, child theme</li>
+                        <li class="flex items-start gap-2"><code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs shrink-0">php-standards.md</code> Sanitize/escape, nonces, WP_Error, hashing</li>
+                        <li class="flex items-start gap-2"><code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs shrink-0">js-css-standards.md</code> ES6+ IIFE, enqueue API, BEM, design tokens</li>
+                        <li class="flex items-start gap-2"><code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs shrink-0">elementor-patterns.md</code> Widgets, Dynamic Tags, Loop Grid, Form actions</li>
+                        <li class="flex items-start gap-2"><code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs shrink-0">woocommerce.md</code> HPOS, order API, WC 10.7 migration</li>
+                        <li class="flex items-start gap-2"><code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs shrink-0">rest-api.md</code> REST endpoints, schema, nonce auth</li>
+                        <li class="flex items-start gap-2"><code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs shrink-0">offcanvas-ui.md</code> Accessible off-canvas, inert, focus trap</li>
+                        <li class="flex items-start gap-2"><code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs shrink-0">performance.md</code> Frontend &amp; backend checklists, WCAG 2.2 AA</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-puzzle-piece text-indigo-500"></i> Widget Boilerplates (35)
+                    </h3>
+                    <div class="flex flex-wrap gap-1.5 text-xs">
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Button</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Container</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Image</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Heading</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Text Editor</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Video</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Elementor Template</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">PHP Template</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Divider</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Spacer</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Icon</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Icon Box</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Image Box</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Image Gallery</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Image Carousel</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Icon List</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Counter</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Progress Bar</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Testimonial</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Tabs</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Accordion</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Toggle</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Social Icons</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Alert</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Audio</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Shortcode</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">HTML</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Menu Anchor</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Sidebar</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Read More</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Google Maps</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Star Rating</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Rating (Schema)</span>
+                        <span class="bg-slate-100 text-slate-500 px-2 py-1 rounded">+ Extended variants</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-3">Each boilerplate is verified against Elementor's native widget source (3.35+)</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="bg-slate-900 text-slate-400 py-12 text-center">
+    <!-- AUDIT BADGE -->
+    <section class="py-12 bg-white border-t border-slate-200">
+        <div class="max-w-3xl mx-auto px-6 text-center">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">Audited Against Official Sources Only</h2>
+            <p class="text-slate-500 mb-8">No blog posts. No third-party tutorials. Every fact is verified against the canonical source.</p>
+            <div class="flex flex-wrap justify-center gap-3 text-sm">
+                <a href="https://wordpress.org/news/" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-full transition">wordpress.org/news</a>
+                <a href="https://make.wordpress.org/core/" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-full transition">make.wordpress.org/core</a>
+                <a href="https://developer.wordpress.org/" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-full transition">developer.wordpress.org</a>
+                <a href="https://developers.elementor.com/" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-full transition">developers.elementor.com</a>
+                <a href="https://developer.woocommerce.com/" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-full transition">developer.woocommerce.com</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER CTA -->
+    <footer class="bg-indigo-900 text-slate-300 py-14 text-center">
         <div class="max-w-3xl mx-auto px-6">
-            <h2 class="text-2xl font-bold text-white mb-6">Ready to upgrade your AI workflows?</h2>
-            <p class="mb-8">Simply upload the repository `.zip` to a Claude Project and ask it to start building.</p>
-            <a href="https://github.com/guramzhgamadze/wordpress-elementor-skill/archive/refs/heads/main.zip" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-full transition duration-300">
-                Download Skill (.zip)
-            </a>
-            <div class="mt-12 text-sm border-t border-slate-700 pt-6">
-                <p>Designed for AI Context Management • Open Source</p>
+            <h2 class="text-2xl font-bold text-white mb-4">Ready to upgrade your AI workflows?</h2>
+            <p class="mb-8 text-indigo-200">Upload the <code class="bg-indigo-800 px-1.5 py-0.5 rounded">.zip</code> to a Claude Project as a custom Skill and start building production-grade WordPress code instantly.</p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="https://github.com/guramzhgamadze/wordpress-elementor-skill/archive/refs/heads/main.zip"
+                   class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-3 px-8 rounded-full transition duration-300 flex items-center gap-2">
+                    <i class="fas fa-download"></i> Download Skill (.zip)
+                </a>
+                <a href="https://github.com/guramzhgamadze/wordpress-elementor-skill"
+                   class="bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-8 rounded-full transition duration-300 flex items-center gap-2">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
+            </div>
+            <div class="mt-12 text-xs border-t border-indigo-800 pt-6 text-indigo-400 space-y-1">
+                <p>Round 17 Audit &mdash; March 25, 2026 &mdash; WordPress 6.9.4 / Elementor 3.35.7 / WooCommerce 8.2+</p>
+                <p>GPL-2.0-or-later &mdash; Designed for AI Context Management &mdash; Open Source</p>
             </div>
         </div>
     </footer>

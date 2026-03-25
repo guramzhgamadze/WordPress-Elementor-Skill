@@ -32,6 +32,11 @@ add_action( 'rest_api_init', function() {
  */
 function myplugin_get_item_schema(): array {
     return [
+        // ✅ WordPress REST API uses JSON Schema draft-04 — NOT draft-07.
+        // WP core validates against draft-04 via its own schema validator. Using
+        // draft-07 keywords (e.g. boolean 'exclusiveMinimum', 'if/then/else', '$ref' resolution)
+        // will be silently ignored or cause validation errors on WP 6.x+.
+        // Source: developer.wordpress.org/rest-api/extending-the-rest-api/schema/
         '$schema'    => 'http://json-schema.org/draft-04/schema#',
         'title'      => 'myplugin_item',
         'type'       => 'object',

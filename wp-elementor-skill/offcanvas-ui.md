@@ -10,7 +10,8 @@
      class="myplugin-offcanvas myplugin-offcanvas--hidden"
      role="dialog"
      aria-modal="true"
-     aria-labelledby="myplugin-offcanvas-title">
+     aria-labelledby="myplugin-offcanvas-title"
+     inert>
 
     <div class="myplugin-offcanvas__header">
         <h2 id="myplugin-offcanvas-title" class="myplugin-offcanvas__title">

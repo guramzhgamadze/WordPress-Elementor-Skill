@@ -136,17 +136,15 @@ compatibility issues. No multisite, standard single-site install assumed.
 > - **Real-Time Collaboration (RTC):** WP 7.0 introduces simultaneous multi-author block
 >   editing. Technically: HTTP polling sync provider (not WebRTC), CRDT update data stored
 >   persistently in `wp_post_meta` on a new internal post type **`wp_sync_storage`**. Updates
->   are batched and periodically compacted. **RTC default (opt-in vs opt-out) was to be finalized
->   around RC2** — per the official March 2026 developer news. The `WP_ALLOW_COLLABORATION`
->   wp-config constant allows hosts to control the transport provider. Expected to become opt-out
->   in a future release once broader plugin coverage is confirmed.
->   Source: developer.wordpress.org/news/2026/03/whats-new-for-developers-march-2026/
+>   are batched and periodically compacted. RTC default (opt-in vs opt-out) finalized around
+>   RC2 — per official March 2026 developer news. The `WP_ALLOW_COLLABORATION` wp-config
+>   constant lets hosts swap the transport provider. Expected to become opt-out in a future
+>   release once broader plugin coverage is confirmed.
 >   **Client-side Media Processing was reverted from 7.0 in Beta 6** (package size ~13 MB,
 >   Chromium-only, OOM crashes) — punted to WP 7.1. No action needed for 7.0.
 >   **Plugin impact:** If your plugin queries `wp_post_meta` by post type or iterates all
 >   posts/meta, add `'post_type__not_in' => ['wp_sync_storage']` (or equivalent exclusion)
->   to avoid unexpected hits on internal sync data. Hosts can swap the transport provider
->   via a `wp-config` constant.
+>   to avoid unexpected hits on internal sync data.
 >   Source: developer.wordpress.org/news/2026/03/whats-new-for-developers-march-2026/,
 >   make.wordpress.org/core/2026/03/19/wordpress-7-0-release-candidate-1-delayed/
 > - **WP 7.0 Beta cycle:** Beta 4 released **March 10, 2026** (emergency security fast-follow,
@@ -204,7 +202,7 @@ Is this a REST API endpoint?
 
 ---
 
-## 3. Mandatory Output Format
+## 15. Mandatory Output Format
 
 **Every single code response must follow this structure — no exceptions:**
 
@@ -231,7 +229,7 @@ activate plugin, clear Elementor cache, etc.
 
 ---
 
-## 4. Quick Reference — Pattern Index
+## 16. Quick Reference — Pattern Index
 
 | Task | Approach | Sub-file |
 |---|---|---|
