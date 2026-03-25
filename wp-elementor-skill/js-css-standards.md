@@ -132,8 +132,8 @@ function myplugin_enqueue_assets(): void {
 /* ─── Safe Elementor overrides — CRITICAL selector rules ─────────────────
    ⚠️ NEVER target .elementor-widget-container directly.
    This inner wrapper div is REMOVED when Elementor's "Optimized Markup"
-   experiment is active (introduced 3.25 alpha; still opt-in as of 3.35.7
-   but users can enable it). Does NOT exist at all in Elementor V4 elements.
+   experiment is active (introduced 3.25 alpha; opt-in in 3.35.x; enabled by default
+   for new sites in Elementor 4.0). Does NOT exist in V4 Atomic Elements at all.
 
    ✅ CORRECT patterns — always use the widget root or your own BEM classes: */
 .elementor-widget-myplugin-widget { /* targets the widget root — always present */ }

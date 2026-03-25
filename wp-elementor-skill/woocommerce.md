@@ -26,7 +26,9 @@ warnings.
 > ```
 > Re-enabling should be treated as a temporary measure only — sync-on-read may be fully
 > removed in a future WooCommerce version.
-> Source: developer.woocommerce.com/2026/02/16/hpos-sync-on-read-to-be-disabled-by-default-in-woocommerce-10-7/
+> Filter source: `woocommerce/src/Internal/DataStores/Orders/DataSynchronizer.php` —
+> `apply_filters( 'woocommerce_hpos_enable_sync_on_read', ... )` (WooCommerce GitHub, `trunk` branch).
+> Feature announcement: developer.woocommerce.com/2026/02/16/hpos-sync-on-read-to-be-disabled-by-default-in-woocommerce-10-7/
 
 ```php
 // HPOS compatibility declaration — add to your main plugin file (see scaffolding.md)

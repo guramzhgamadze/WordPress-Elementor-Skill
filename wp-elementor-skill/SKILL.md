@@ -106,9 +106,10 @@ Quickly assess — **only ask if the answer would change the code**:
 **Default assumptions when not stated:** WordPress 6.9.4+ (WP 7.0 scheduled April 9, 2026),
 PHP 8.3+ (officially recommended by wordpress.org/about/requirements/; 8.4 and 8.5 = beta
 support label; 8.2 is fully compatible but no longer the recommended default),
-Elementor (free) 3.35.7+ / Elementor Pro 3.35.1+ (V3 Widget_Base API).
+Elementor (free) 3.35.8+ / Elementor Pro 3.35.1+ (V3 Widget_Base API).
 **Note:** Elementor core and Elementor Pro are separate plugins with independent version numbers
-(as of March 2026: core = 3.35.7, Pro = 3.35.1). Always check both when diagnosing
+(as of March 2026: core = 3.35.8, Pro = 3.35.1). Elementor free 3.35.8 was a security release
+(March 23, 2026) fixing code enforcement in Template Library and upload mechanism. Always check both when diagnosing
 compatibility issues. No multisite, standard single-site install assumed.
 
 > 🔜 **WordPress 7.0 (April 9, 2026):** PHP 7.2 and 7.3 will no longer be supported. The new
@@ -128,7 +129,9 @@ compatibility issues. No multisite, standard single-site install assumed.
 > - **WP AI Client:** `wp_ai_client_prompt($prompt)->generate_text()` — provider-agnostic
 >   PHP + JS AI API. Use `function_exists('wp_ai_client_prompt')` to guard.
 > - **Connectors UI:** Settings → Connectors admin page for managing AI provider credentials.
->   Hook: `connections-wp-admin-init`. APIs still experimental until WP 7.0 stable ships.
+>   Hook: `connections-wp-admin-init`. ⚠️ **These names are PRE-STABLE and subject to change**
+>   before the April 9, 2026 final release — guard all usage with `function_exists()` /
+>   `did_action()` checks and do not ship production code depending on them until WP 7.0 stable.
 > - **Abilities API:** PHP side in WP 6.9 (`wp_register_ability()`); JS counterpart in WP 7.0.
 >   `'meta' => ['show_in_rest' => true]` to expose via REST.
 > - **Iframed Editor (PUNTED to WP 7.1):** No action required for WP 7.0. Prepare for 7.1
@@ -147,18 +150,20 @@ compatibility issues. No multisite, standard single-site install assumed.
 >   to avoid unexpected hits on internal sync data.
 >   Source: developer.wordpress.org/news/2026/03/whats-new-for-developers-march-2026/,
 >   make.wordpress.org/core/2026/03/19/wordpress-7-0-release-candidate-1-delayed/
+>   Source (RC schedule): make.wordpress.org/core/2026/01/09/wordpress-7-0-call-for-volunteers/
 > - **WP 7.0 Beta cycle:** Beta 4 released **March 10, 2026** (emergency security fast-follow,
 >   same day as WordPress 6.9.2 and 6.9.3). **WordPress 6.9.4** was then released March 11, 2026
 >   after the Security Team found not all fixes in 6.9.2 were fully applied — 6.9.4 is the
 >   current stable release. Beta 5 released March 12, 2026. **Beta 6 released March 20, 2026**
 >   (reverts Client-side Media, includes RTC performance improvements, 4× polling interval).
 >   **RC1 released March 24, 2026** (was scheduled March 19 — delayed due to RTC performance
->   concerns and package bloat). **RC2 scheduled April 2, 2026. Final release: April 9, 2026.**
+>   concerns and package bloat). **RC2 released March 26, 2026. RC3 scheduled April 2, 2026. Final release: April 9, 2026.**
 >   Source: wordpress.org/news/2026/03/wordpress-6-9-3-and-7-0-beta-4/,
 >   wordpress.org/news/2026/03/wordpress-7-0-beta-5/,
 >   wordpress.org/news/2026/03/wordpress-6-9-4-release/,
 >   make.wordpress.org/core/2026/02/12/wordpress-7-0-release-party-schedule/,
 >   make.wordpress.org/core/2026/03/19/wordpress-7-0-release-candidate-1-delayed/
+>   Source (RC schedule): make.wordpress.org/core/2026/01/09/wordpress-7-0-call-for-volunteers/
 
 > 📌 **PHP support labels (WP 6.9):**
 > - PHP 8.0–8.3 = fully compatible. PHP 7.4 = fully compatible.
@@ -167,14 +172,25 @@ compatibility issues. No multisite, standard single-site install assumed.
 > - "Beta support" = actively working toward full compatibility; possible deprecation notices.
 > Source: make.wordpress.org/core/handbook/references/php-compatibility-and-wordpress-versions/
 
-> ⚠️ **Elementor V4 note:** V4 production-ready (Beta status) in Elementor 3.35 (February 2, 2026).
-> New V4 features in 3.35 include **Components** (reusable layout blocks with global sync +
-> per-instance content overrides) and **Inline Editing** (edit Atomic Heading/Paragraph text
-> directly on canvas). V4 PHP extension APIs (custom Atomic Elements / Components) are
-> **not yet publicly documented** — do not use in third-party plugins. All skill code targets
-> V3 `Widget_Base` API. V3 and V4 coexist; official 4.0 release is upcoming (V4 will become
-> default for new sites on 4.0 — no forced migration for existing V3 widgets).
-
+> ⚠️ **Elementor V4 / 4.0 status (March 25, 2026):**
+> - **Elementor 4.0 Beta** launched March 16–19, 2026 (Beta is available via Version Control
+>   in Elementor Tools). Stable general release estimated ~**March 30, 2026**. Current stable
+>   plugin versions remain **3.35.7** (free) and **3.35.1** (Pro).
+>   Source: github.com/orgs/elementor/discussions/35165
+>         · developers.elementor.com/elementor-editor-4-0-developers-update/
+> - **What 4.0 changes for new sites:** The Atomic Editor is the default experience.
+>   Atomic Elements, Variables, Classes, and Components are enabled on fresh installs.
+> - **What 4.0 does NOT change for existing sites:** Updating to 4.0 leaves current sites
+>   untouched. V3 widgets and V4 Atomic Elements coexist on the same page. Enable Atomic
+>   features manually via WP Admin → Elementor → Editor → Settings → Atomic Editor.
+>   Source: github.com/orgs/elementor/discussions/35165
+> - **New in 4.0 (Pro):** Atomic Forms (composable Label/Input/Textarea/Submit atoms),
+>   Pro Interactions (scroll-triggered, hover, click; Custom Effect with Scale/Move/Rotate/Skew;
+>   breakpoint controls), Design System sync (Variables/Classes → legacy Global Styles).
+> - **V3 `Widget_Base` remains fully supported in 4.0** — all skill code targets V3 and is
+>   production-safe on any site. The V4 Atomic Element PHP extension API is Beta-only and
+>   **not yet stable for third-party plugins** — do not ship production code using it until
+>   4.0 stable is released and the API is finalized.
 ---
 
 ## 2. Architecture Decision Tree
@@ -202,7 +218,7 @@ Is this a REST API endpoint?
 
 ---
 
-## 15. Mandatory Output Format
+## 3. Mandatory Output Format
 
 **Every single code response must follow this structure — no exceptions:**
 
@@ -229,7 +245,7 @@ activate plugin, clear Elementor cache, etc.
 
 ---
 
-## 16. Quick Reference — Pattern Index
+## 4. Quick Reference — Pattern Index
 
 | Task | Approach | Sub-file |
 |---|---|---|

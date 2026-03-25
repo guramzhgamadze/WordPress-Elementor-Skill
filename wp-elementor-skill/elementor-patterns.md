@@ -2,18 +2,19 @@
 
 ## V4 Compatibility Rules (Apply Now)
 
-> ⚠️ **Apply these rules to all new code — before V4 becomes the default:**
-> 1. **NEVER target `.elementor-widget-container` in CSS or JS** — deprecated since 3.26.
->    As of 3.35.7 the Optimized Markup experiment is still opt-in, but users may enable it.
->    Write all new code as if this wrapper is absent.
+> ⚠️ **V4 compatibility rules — apply to all new code (4.0 Beta is live; stable ~March 30):**
+> 1. **NEVER target `.elementor-widget-container` in CSS or JS** — removed from V4 Atomic
+>    Elements entirely, and removed from V3 widgets when Optimized Markup is active (opt-in
+>    in 3.35.x; **on by default for new sites in 4.0**). Write all code as if this wrapper
+>    is absent.
 > 2. **ALWAYS include `has_widget_inner_wrapper(): false`** on every new widget.
 > 3. **Do NOT use `strategy: 'defer'`** on scripts that listen for `elementor/frontend/init`.
-> 4. V4 is production-ready as of Elementor 3.35 (February 2, 2026), but the **PHP extension
->    API for custom Atomic Elements is not yet publicly documented**. Use V3 `Widget_Base` only.
-> 5. **Elementor 3.34.2+ Unified Admin Menu (January 20, 2026):** Register all admin menus
->    using standard WordPress `add_submenu_page('elementor', ...)` only. Non-standard injection
->    methods are silently dropped.
-
+> 4. **V3 `Widget_Base` is fully supported in 4.0** and is the correct target for all
+>    third-party widgets. The V4 Atomic Element PHP extension API is Beta-only — not yet
+>    stable for production plugins. Use V3 `Widget_Base` until 4.0 stable ships.
+> 5. **Elementor 3.34.2+ Unified Admin Menu (January 20, 2026):** Register plugin menus as
+>    standard WordPress admin pages outside the Elementor parent slug. Non-standard injection
+>    into the Elementor admin area is silently dropped.
 ---
 
 ## Custom Widget — Complete Pattern

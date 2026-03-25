@@ -39,7 +39,13 @@
     Placed AFTER the panel (not inside it) so it sits behind the panel in stacking context.
     Controlled by the same JS open/close functions via the 'myplugin-offcanvas--hidden' class.
 -->
-<div class="myplugin-offcanvas__backdrop" aria-hidden="true"></div>
+<!--
+    ✅ Backdrop starts with --hidden class in HTML — matches the panel's initial hidden state.
+    Without this, the dark overlay is VISIBLE before JS loads and adds the class at init time.
+    JS removes the class on open() and re-adds it on close(). Same pattern as the inert attribute
+    on the panel: accessibility/visibility state must be set in HTML, not only in JS.
+-->
+<div class="myplugin-offcanvas__backdrop myplugin-offcanvas__backdrop--hidden" aria-hidden="true"></div>
 ```
 
 ```css
@@ -155,9 +161,11 @@
     backdrop?.classList.add( 'myplugin-offcanvas__backdrop--hidden' );
   };
 
-  // Initialize panel and backdrop as hidden on load
+  // Initialize panel and backdrop as hidden on load.
+  // panel already has inert + --hidden class set in HTML markup — this is a JS-side
+  // safety net in case the widget is dynamically injected after page load (e.g. via AJAX).
   panel.inert = true;
-  backdrop?.classList.add( 'myplugin-offcanvas__backdrop--hidden' );
+  backdrop?.classList.add( 'myplugin-offcanvas__backdrop--hidden' ); // idempotent — class already in HTML
 
   // Focus trap — Tab cycles within open panel
   // ✅ querySelectorAll runs fresh on each keydown so dynamically injected controls
