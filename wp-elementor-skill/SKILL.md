@@ -89,6 +89,10 @@ These override everything in all sub-files:
 3. **Prefix everything** — All functions, classes, constants, hooks, and CSS classes use a project-specific prefix.
 4. **State your placement** — Every code response must declare exactly where the code lives.
 5. **No over-clarifying** — Only ask a clarification question if the missing info would materially change the code output. Otherwise, state your assumption and proceed.
+6. **NEVER hardcode visual settings in widgets** — Every visual property (colors, fonts, sizes,
+   spacing, backgrounds, borders, shadows, alignment) MUST be exposed as a standard Elementor
+   control in the editor panel. Users control appearance via the toolbar — not by editing code.
+   See §5 "Mandatory Widget Controls" below for the required controls checklist.
 
 ---
 
@@ -106,10 +110,11 @@ Quickly assess — **only ask if the answer would change the code**:
 **Default assumptions when not stated:** WordPress 6.9.4+ (WP 7.0 scheduled April 9, 2026),
 PHP 8.3+ (officially recommended by wordpress.org/about/requirements/; 8.4 and 8.5 = beta
 support label; 8.2 is fully compatible but no longer the recommended default),
-Elementor (free) 3.35.8+ / Elementor Pro 3.35.1+ (V3 Widget_Base API).
+Elementor (free) 3.35.9+ / Elementor Pro 3.35.1+ (V3 Widget_Base API).
 **Note:** Elementor core and Elementor Pro are separate plugins with independent version numbers
-(as of March 2026: core = 3.35.8, Pro = 3.35.1). Elementor free 3.35.8 was a security release
-(March 23, 2026) fixing code enforcement in Template Library and upload mechanism. Always check both when diagnosing
+(as of March 2026: core = 3.35.9, Pro = 3.35.1). Elementor free 3.35.8 (March 23, 2026) was a
+security release fixing code enforcement in Template Library and upload mechanism; 3.35.9
+(March 25, 2026) fixed an AI-generated image insertion bug. Always check both when diagnosing
 compatibility issues. No multisite, standard single-site install assumed.
 
 > 🔜 **WordPress 7.0 (April 9, 2026):** PHP 7.2 and 7.3 will no longer be supported. The new
@@ -172,12 +177,14 @@ compatibility issues. No multisite, standard single-site install assumed.
 > - "Beta support" = actively working toward full compatibility; possible deprecation notices.
 > Source: make.wordpress.org/core/handbook/references/php-compatibility-and-wordpress-versions/
 
-> ⚠️ **Elementor V4 / 4.0 status (March 25, 2026):**
+> ⚠️ **Elementor V4 / 4.0 status (March 27, 2026):**
 > - **Elementor 4.0 Beta** launched March 16–19, 2026 (Beta is available via Version Control
->   in Elementor Tools). Stable general release estimated ~**March 30, 2026**. Current stable
->   plugin versions remain **3.35.7** (free) and **3.35.1** (Pro).
+>   in Elementor Tools). Stable general release estimated ~**April 2026** (per official roadmap
+>   at elementor.com/roadmap/). Current stable
+>   plugin versions are **3.35.9** (free) and **3.35.1** (Pro).
 >   Source: github.com/orgs/elementor/discussions/35165
 >         · developers.elementor.com/elementor-editor-4-0-developers-update/
+>         · elementor.com/roadmap/
 > - **What 4.0 changes for new sites:** The Atomic Editor is the default experience.
 >   Atomic Elements, Variables, Classes, and Components are enabled on fresh installs.
 > - **What 4.0 does NOT change for existing sites:** Updating to 4.0 leaves current sites
@@ -307,3 +314,140 @@ activate plugin, clear Elementor cache, etc.
 | Widget with Google Maps | Address TEXT + zoom SLIDER + iframe | widget-google-maps.md |
 | Widget with star rating display | Scale + rating number + icon style | widget-star-rating.md |
 | Widget with schema rating | Icon count + fractional rating + gap | widget-rating.md |
+
+---
+
+## 5. Mandatory Widget Controls — No Hardcoded Visuals (NEVER VIOLATE)
+
+> **This section is MANDATORY for every custom Elementor widget.** Whenever you build a widget,
+> every visual property must be an Elementor control — NEVER a hardcoded CSS value. Users
+> control appearance from the editor panel/toolbar, not by editing source code.
+
+### The Rule
+
+**NEVER hardcode** any of the following in PHP `render()`, in static CSS, or in
+`content_template()` output:
+
+- Colors (text, background, border, shadow)
+- Typography (font family, size, weight, line-height, letter-spacing, transform)
+- Spacing (padding, margin, gap)
+- Sizing (width, height, min/max values)
+- Borders (style, width, color, radius)
+- Shadows (box-shadow, text-shadow)
+- Backgrounds (color, gradient, image)
+- Alignment / positioning
+- Opacity, transitions, hover effects
+
+**ALL** of the above must use Elementor controls with `selectors` that inject CSS dynamically.
+The only exceptions are structural CSS (display, position, overflow) required for the widget
+layout to function at all — and even these should use controls when there is a user-facing
+choice (e.g. flex-direction toggle).
+
+### Required Controls Checklist — Apply to Every Widget
+
+When building a widget, include ALL controls that apply to its visual elements.
+Use this checklist as a mandatory gate:
+
+| Visual property | Required Elementor control | Tab |
+|---|---|---|
+| **Text content** | `TEXT`, `TEXTAREA`, or `WYSIWYG` + `'dynamic' => ['active' => true]` | TAB_CONTENT |
+| **Typography** (any text element) | `add_group_control( Group_Control_Typography::get_type() )` | TAB_STYLE |
+| **Text color** | `COLOR` control with `selectors` | TAB_STYLE |
+| **Text alignment** | `add_responsive_control()` with `CHOOSE` (left/center/right/justify) | TAB_STYLE or TAB_CONTENT |
+| **Background** | `add_group_control( Group_Control_Background::get_type() )` | TAB_STYLE |
+| **Border** | `add_group_control( Group_Control_Border::get_type() )` | TAB_STYLE |
+| **Border radius** | `add_responsive_control()` with `DIMENSIONS` + `'selectors'` | TAB_STYLE |
+| **Box shadow** | `add_group_control( Group_Control_Box_Shadow::get_type() )` | TAB_STYLE |
+| **Text shadow** | `add_group_control( Group_Control_Text_Shadow::get_type() )` | TAB_STYLE |
+| **Padding** | `add_responsive_control()` with `DIMENSIONS` | TAB_STYLE |
+| **Margin** | `add_responsive_control()` with `DIMENSIONS` | TAB_STYLE |
+| **Width / Height** | `add_responsive_control()` with `SLIDER` | TAB_STYLE |
+| **Spacing / Gap** | `add_responsive_control()` with `SLIDER` | TAB_STYLE |
+| **Image** | `MEDIA` + `add_group_control( Group_Control_Image_Size::get_type() )` | TAB_CONTENT |
+| **CSS Filters** (if image/element) | `add_group_control( Group_Control_Css_Filter::get_type() )` | TAB_STYLE |
+| **Hover state** | Duplicate color/background/shadow controls inside `'section_style_hover'` with `selectors` targeting `:hover` | TAB_STYLE |
+| **Transition duration** | `SLIDER` (seconds) with `selectors => ['transition-duration']` | TAB_STYLE |
+| **Link** | `URL` control with `'dynamic' => ['active' => true]` | TAB_CONTENT |
+| **Icon** | `ICONS` control with `fa4compatibility` | TAB_CONTENT |
+| **HTML tag** | `SELECT` (h1–h6, div, span, p) | TAB_CONTENT |
+
+### Example — Correct vs Incorrect
+
+```php
+// ❌ WRONG — hardcoded color and font-size
+protected function render(): void {
+    $settings = $this->get_settings_for_display();
+    echo '<h2 style="color: #e94560; font-size: 24px;">'
+        . esc_html( $settings['title'] ) . '</h2>';
+}
+
+// ✅ CORRECT — all visuals controlled from the panel via selectors
+protected function register_controls(): void {
+    // ... Content section with title TEXT control ...
+
+    $this->start_controls_section( 'section_title_style', [
+        'label' => esc_html__( 'Title Style', 'myplugin' ),
+        'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+    ] );
+
+    $this->add_control( 'title_color', [
+        'label'     => esc_html__( 'Color', 'myplugin' ),
+        'type'      => \Elementor\Controls_Manager::COLOR,
+        'selectors' => [
+            '{{WRAPPER}} .myplugin-widget__title' => 'color: {{VALUE}};',
+        ],
+    ] );
+
+    $this->add_group_control(
+        \Elementor\Group_Control_Typography::get_type(),
+        [
+            'name'     => 'title_typography',
+            'selector' => '{{WRAPPER}} .myplugin-widget__title',
+        ]
+    );
+
+    $this->add_responsive_control( 'title_align', [
+        'label'   => esc_html__( 'Alignment', 'myplugin' ),
+        'type'    => \Elementor\Controls_Manager::CHOOSE,
+        'options' => [
+            'left'   => [ 'title' => esc_html__( 'Left',   'myplugin' ), 'icon' => 'eicon-text-align-left' ],
+            'center' => [ 'title' => esc_html__( 'Center', 'myplugin' ), 'icon' => 'eicon-text-align-center' ],
+            'right'  => [ 'title' => esc_html__( 'Right',  'myplugin' ), 'icon' => 'eicon-text-align-right' ],
+        ],
+        'selectors' => [
+            '{{WRAPPER}} .myplugin-widget__title' => 'text-align: {{VALUE}};',
+        ],
+    ] );
+
+    $this->add_responsive_control( 'title_spacing', [
+        'label'      => esc_html__( 'Bottom Spacing', 'myplugin' ),
+        'type'       => \Elementor\Controls_Manager::SLIDER,
+        'size_units' => [ 'px', 'em', 'rem' ],
+        'range'      => [ 'px' => [ 'min' => 0, 'max' => 100 ] ],
+        'selectors'  => [
+            '{{WRAPPER}} .myplugin-widget__title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+        ],
+    ] );
+
+    $this->end_controls_section();
+}
+
+protected function render(): void {
+    $settings = $this->get_settings_for_display();
+    // ✅ No inline styles — all visuals come from Elementor's selectors
+    $this->add_render_attribute( 'title', 'class', 'myplugin-widget__title' );
+    $this->add_inline_editing_attributes( 'title' );
+    echo '<h2 ' . $this->get_render_attribute_string( 'title' ) . '>'
+        . esc_html( $settings['title'] ) . '</h2>';
+}
+```
+
+### `add_render_attribute()` and `add_inline_editing_attributes()` — Always Use
+
+The official Elementor API for building HTML attributes is `$this->add_render_attribute()`.
+**Always use it** instead of manually concatenating class/id/aria attributes in `render()`.
+Pair with `$this->add_inline_editing_attributes()` for any text field that supports live
+editing in the Elementor editor panel.
+
+Source: developers.elementor.com/docs/widgets/rendering-html-attribute/
+Source: developers.elementor.com/docs/widgets/rendering-inline-editing/

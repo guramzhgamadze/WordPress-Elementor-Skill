@@ -2,7 +2,7 @@
 
 ## V4 Compatibility Rules (Apply Now)
 
-> ⚠️ **V4 compatibility rules — apply to all new code (4.0 Beta is live; stable ~March 30):**
+> ⚠️ **V4 compatibility rules — apply to all new code (4.0 Beta is live; stable ~April 2026):**
 > 1. **NEVER target `.elementor-widget-container` in CSS or JS** — removed from V4 Atomic
 >    Elements entirely, and removed from V3 widgets when Optimized Markup is active (opt-in
 >    in 3.35.x; **on by default for new sites in 4.0**). Write all code as if this wrapper
@@ -15,6 +15,26 @@
 > 5. **Elementor 3.34.2+ Unified Admin Menu (January 20, 2026):** Register plugin menus as
 >    standard WordPress admin pages outside the Elementor parent slug. Non-standard injection
 >    into the Elementor admin area is silently dropped.
+---
+
+## Mandatory: No Hardcoded Visuals — Every Widget Must Use Controls
+
+> ⚠️ **This is a MANDATORY rule — see SKILL.md §0 Golden Rule #6 and §5 for the full checklist.**
+>
+> **NEVER hardcode** colors, fonts, sizes, spacing, backgrounds, borders, shadows, or any
+> visual property in `render()`, in static CSS files, or in `content_template()`. ALL visual
+> properties must be Elementor controls using `selectors` to inject CSS.
+>
+> **For every text element:** `Group_Control_Typography` + `COLOR` control.
+> **For every box/container:** `Group_Control_Background` + `Group_Control_Border` +
+> `Group_Control_Box_Shadow` + `DIMENSIONS` (padding/margin/border-radius).
+> **For every spacing value:** `add_responsive_control()` with `SLIDER` or `DIMENSIONS`.
+> **For every interactive state:** Duplicate controls for `:hover` in a separate section.
+>
+> Source: developers.elementor.com/docs/widgets/widget-controls/
+> Source: developers.elementor.com/docs/editor-controls/group-control/
+> Source: developers.elementor.com/docs/editor-controls/responsive-control/
+
 ---
 
 ## Custom Widget — Complete Pattern
@@ -112,6 +132,20 @@ class MyPlugin_Widget extends \Elementor\Widget_Base {
             'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
         ] );
 
+        // ✅ RESPONSIVE alignment — user sets per-breakpoint via device icons
+        $this->add_responsive_control( 'title_align', [
+            'label'   => esc_html__( 'Alignment', 'myplugin' ),
+            'type'    => \Elementor\Controls_Manager::CHOOSE,
+            'options' => [
+                'left'   => [ 'title' => esc_html__( 'Left',   'myplugin' ), 'icon' => 'eicon-text-align-left' ],
+                'center' => [ 'title' => esc_html__( 'Center', 'myplugin' ), 'icon' => 'eicon-text-align-center' ],
+                'right'  => [ 'title' => esc_html__( 'Right',  'myplugin' ), 'icon' => 'eicon-text-align-right' ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .myplugin-widget__title' => 'text-align: {{VALUE}};',
+            ],
+        ] );
+
         $this->add_control( 'title_color', [
             'label'     => esc_html__( 'Color', 'myplugin' ),
             'type'      => \Elementor\Controls_Manager::COLOR,
@@ -122,6 +156,9 @@ class MyPlugin_Widget extends \Elementor\Widget_Base {
             ],
         ] );
 
+        // ✅ Group_Control_Typography — MANDATORY for every text element.
+        // Provides font-family, size, weight, transform, style, decoration, line-height,
+        // letter-spacing, and word-spacing — all responsive. NEVER hardcode any of these.
         $this->add_group_control(
             \Elementor\Group_Control_Typography::get_type(),
             [
@@ -129,6 +166,29 @@ class MyPlugin_Widget extends \Elementor\Widget_Base {
                 'selector' => '{{WRAPPER}} .myplugin-widget__title',
             ]
         );
+
+        // ✅ Group_Control_Text_Shadow — standard for heading/title elements
+        $this->add_group_control(
+            \Elementor\Group_Control_Text_Shadow::get_type(),
+            [
+                'name'     => 'title_text_shadow',
+                'selector' => '{{WRAPPER}} .myplugin-widget__title',
+            ]
+        );
+
+        // ✅ RESPONSIVE spacing — use SLIDER with size_units for any spacing value
+        $this->add_responsive_control( 'title_spacing', [
+            'label'      => esc_html__( 'Bottom Spacing', 'myplugin' ),
+            'type'       => \Elementor\Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range'      => [
+                'px'  => [ 'min' => 0, 'max' => 100 ],
+                'em'  => [ 'min' => 0, 'max' => 10 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .myplugin-widget__title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
 
         $this->end_controls_section();
     }
@@ -139,9 +199,17 @@ class MyPlugin_Widget extends \Elementor\Widget_Base {
         // ✅ Null-safe check — Plugin::$instance->editor is null on the frontend
         $is_editor = \Elementor\Plugin::$instance->editor
                      && \Elementor\Plugin::$instance->editor->is_edit_mode();
+
+        // ✅ ALWAYS use add_render_attribute() — the official Elementor API for building
+        // HTML attributes. Never manually concatenate class strings in render().
+        // Source: developers.elementor.com/docs/widgets/rendering-html-attribute/
+        $this->add_render_attribute( 'title', 'class', 'myplugin-widget__title' );
+        // ✅ add_inline_editing_attributes() enables live text editing in the panel.
+        // Source: developers.elementor.com/docs/widgets/rendering-inline-editing/
+        $this->add_inline_editing_attributes( 'title' );
         ?>
         <div class="myplugin-widget">
-            <h2 class="myplugin-widget__title">
+            <h2 <?php $this->print_render_attribute_string( 'title' ); ?>>
                 <?php echo esc_html( $settings['title'] ); ?>
             </h2>
             <?php if ( $is_editor ) : ?>
@@ -160,7 +228,9 @@ class MyPlugin_Widget extends \Elementor\Widget_Base {
     protected function content_template(): void {
         ?>
         <div class="myplugin-widget">
-            <h2 class="myplugin-widget__title">{{{ settings.title }}}</h2>
+            <# view.addRenderAttribute( 'title', 'class', 'myplugin-widget__title' );
+               view.addInlineEditingAttributes( 'title' ); #>
+            <h2 {{{ view.getRenderAttributeString( 'title' ) }}}>{{{ settings.title }}}</h2>
         </div>
         <?php
     }
