@@ -110,12 +110,12 @@ Quickly assess — **only ask if the answer would change the code**:
 **Default assumptions when not stated:** WordPress 6.9.4+ (WP 7.0 scheduled April 9, 2026),
 PHP 8.3+ (officially recommended by wordpress.org/about/requirements/; 8.4 and 8.5 = beta
 support label; 8.2 is fully compatible but no longer the recommended default),
-Elementor (free) 3.35.9+ / Elementor Pro 3.35.1+ (V3 Widget_Base API).
+Elementor 4.0.0+ (free and Pro both version 4.0.0, released March 30, 2026). V3 Widget_Base API remains fully supported.
 **Note:** Elementor core and Elementor Pro are separate plugins with independent version numbers
-(as of March 2026: core = 3.35.9, Pro = 3.35.1). Elementor free 3.35.8 (March 23, 2026) was a
-security release fixing code enforcement in Template Library and upload mechanism; 3.35.9
-(March 25, 2026) fixed an AI-generated image insertion bug. Always check both when diagnosing
-compatibility issues. No multisite, standard single-site install assumed.
+**Note:** Elementor free and Pro both released **4.0.0 on March 30, 2026**.
+History: 3.35.8 (March 23) was a security release; 3.35.9 (March 25) fixed an
+AI-generated image insertion bug; 4.0.0 (March 30) is the current stable release.
+Always check both free and Pro when diagnosing compatibility issues. No multisite assumed.
 
 > 🔜 **WordPress 7.0 (April 9, 2026):** PHP 7.2 and 7.3 will no longer be supported. The new
 > minimum PHP version is 7.4.0. Sites still on PHP 7.2/7.3 will remain pinned to WP 6.9 and
@@ -177,27 +177,28 @@ compatibility issues. No multisite, standard single-site install assumed.
 > - "Beta support" = actively working toward full compatibility; possible deprecation notices.
 > Source: make.wordpress.org/core/handbook/references/php-compatibility-and-wordpress-versions/
 
-> ⚠️ **Elementor V4 / 4.0 status (March 27, 2026):**
-> - **Elementor 4.0 Beta** launched March 16–19, 2026 (Beta is available via Version Control
->   in Elementor Tools). Stable general release estimated ~**April 2026** (per official roadmap
->   at elementor.com/roadmap/). Current stable
->   plugin versions are **3.35.9** (free) and **3.35.1** (Pro).
->   Source: github.com/orgs/elementor/discussions/35165
->         · developers.elementor.com/elementor-editor-4-0-developers-update/
->         · elementor.com/roadmap/
-> - **What 4.0 changes for new sites:** The Atomic Editor is the default experience.
+> ✅ **Elementor 4.0.0 RELEASED March 30, 2026 (free + Pro simultaneously):**
+> - **Elementor free 4.0.0** (March 30, 2026): Atomic Editor status set to **Stable**;
+>   enabled by default for all new site installations; Global Style sync (Variables/Classes
+>   → legacy Global Styles); self-hosted Video Atomic Element; new onboarding flow.
+>   Source: github.com/elementor/elementor/blob/main/changelog.txt (= 4.0.0 - 2026-03-30)
+>         · wordpress.org/plugins/elementor/ (version 4.0.0, last updated Mar 30, 2026)
+> - **Elementor Pro 4.0.0** (March 30, 2026): Atomic Forms (composable Label/Input/Textarea/
+>   Submit atoms); Pro Interactions (scroll-triggered, hover, click; Custom Effect with
+>   Scale/Move/Rotate/Skew; breakpoint controls); Component creation & detach for Pro users;
+>   custom fonts in typography controls.
+>   Source: elementor.com/pro/changelog/ (= 4.0.0 - 2026-03-30)
+> - **What 4.0 changes for new sites:** The Atomic Editor is now the default experience.
 >   Atomic Elements, Variables, Classes, and Components are enabled on fresh installs.
 > - **What 4.0 does NOT change for existing sites:** Updating to 4.0 leaves current sites
->   untouched. V3 widgets and V4 Atomic Elements coexist on the same page. Enable Atomic
->   features manually via WP Admin → Elementor → Editor → Settings → Atomic Editor.
->   Source: github.com/orgs/elementor/discussions/35165
-> - **New in 4.0 (Pro):** Atomic Forms (composable Label/Input/Textarea/Submit atoms),
->   Pro Interactions (scroll-triggered, hover, click; Custom Effect with Scale/Move/Rotate/Skew;
->   breakpoint controls), Design System sync (Variables/Classes → legacy Global Styles).
+>   fully untouched. V3 widgets and V4 Atomic Elements coexist on the same page. Atomic
+>   features can be enabled manually: WP Admin → Elementor → Editor → Settings → Atomic Editor.
+>   Source: elementor.com/products/website-builder/v4-faq/
 > - **V3 `Widget_Base` remains fully supported in 4.0** — all skill code targets V3 and is
->   production-safe on any site. The V4 Atomic Element PHP extension API is Beta-only and
->   **not yet stable for third-party plugins** — do not ship production code using it until
->   4.0 stable is released and the API is finalized.
+>   production-safe on any site. The V4 Atomic Element PHP extension API is now **Stable**
+>   in 4.0, but the third-party extension documentation is still being finalized. Third-party
+>   plugins should continue using V3 `Widget_Base` until official V4 PHP extension docs ship.
+>   Source: developers.elementor.com/elementor-editor-4-0-developers-update/
 ---
 
 ## 2. Architecture Decision Tree

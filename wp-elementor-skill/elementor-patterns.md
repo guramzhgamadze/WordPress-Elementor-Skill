@@ -2,19 +2,22 @@
 
 ## V4 Compatibility Rules (Apply Now)
 
-> ⚠️ **V4 compatibility rules — apply to all new code (4.0 Beta is live; stable ~April 2026):**
-> 1. **NEVER target `.elementor-widget-container` in CSS or JS** — removed from V4 Atomic
->    Elements entirely, and removed from V3 widgets when Optimized Markup is active (opt-in
->    in 3.35.x; **on by default for new sites in 4.0**). Write all code as if this wrapper
->    is absent.
+> ✅ **V4 / Elementor 4.0 is STABLE — apply these rules to all new code:**
+> 1. **NEVER target `.elementor-widget-container` in CSS or JS** — does NOT exist in V4
+>    Atomic Elements; removed from V3 widgets when Optimized Markup is active (opt-in in
+>    3.35.x, **on by default for all new sites since Elementor 4.0**). Write all new code
+>    as if this wrapper is absent.
+>    Source: developers.elementor.com/docs/widgets/widget-inner-wrapper/
 > 2. **ALWAYS include `has_widget_inner_wrapper(): false`** on every new widget.
 > 3. **Do NOT use `strategy: 'defer'`** on scripts that listen for `elementor/frontend/init`.
-> 4. **V3 `Widget_Base` is fully supported in 4.0** and is the correct target for all
->    third-party widgets. The V4 Atomic Element PHP extension API is Beta-only — not yet
->    stable for production plugins. Use V3 `Widget_Base` until 4.0 stable ships.
-> 5. **Elementor 3.34.2+ Unified Admin Menu (January 20, 2026):** Register plugin menus as
->    standard WordPress admin pages outside the Elementor parent slug. Non-standard injection
->    into the Elementor admin area is silently dropped.
+> 4. **V3 `Widget_Base` is fully supported in Elementor 4.0.** Use V3 for all third-party
+>    widgets — it is the correct, production-safe API. The V4 Atomic Element PHP extension
+>    API is Stable in 4.0 but third-party PHP extension documentation is still being finalized.
+>    Continue using V3 `Widget_Base` until official V4 extension docs are published.
+>    Source: elementor.com/products/website-builder/v4-faq/ · developers.elementor.com/elementor-editor-4-0-developers-update/
+> 5. **Elementor 4.0+ Admin Menu:** Register plugin menus as standard WordPress admin pages
+>    outside the Elementor parent slug. Non-standard injection into the Elementor admin area
+>    is silently dropped (unchanged from 3.34.2 behaviour).
 ---
 
 ## Mandatory: No Hardcoded Visuals — Every Widget Must Use Controls
