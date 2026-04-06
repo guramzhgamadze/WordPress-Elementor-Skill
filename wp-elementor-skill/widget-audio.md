@@ -73,7 +73,14 @@ protected function render(): void {
         return;
     }
 
-    echo '<div class="myplugin-audio">' . wp_kses_post( $oembed_html ) . '</div>';
+    // ✅ DO NOT use wp_kses_post() on oEmbed HTML.
+    // wp_kses_post() uses wp_kses_allowed_html('post') which does NOT include <iframe>.
+    // SoundCloud oEmbed returns an <iframe> — wp_kses_post() would strip it entirely,
+    // producing empty output with no error. wp_oembed_get() returns WordPress-generated
+    // HTML that has already been processed through WordPress's own oEmbed stack (trusted).
+    // This matches Elementor's native Audio widget (elementor/includes/widgets/audio.php).
+    // Source: developer.wordpress.org/reference/functions/wp_kses_allowed_html/ ('post' context)
+    echo '<div class="myplugin-audio">' . $oembed_html . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- trusted WordPress-generated oEmbed; wp_kses_post strips <iframe>
 }
 
 protected function content_template(): void {

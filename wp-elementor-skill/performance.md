@@ -47,12 +47,16 @@
 - [ ] Transient keys are ≤ 172 characters — dynamic keys use `md5()` to prevent silent cache misses
 - [ ] No `SELECT *` — use `$wpdb->get_results` with explicit column names
 - [ ] No queries inside loops — pre-fetch with a single WP_Query, then loop results
-- [ ] **WP 7.0+ Real-Time Collaboration (RTC) — `wp_sync_storage` exclusion:** WordPress 7.0
-      introduces an internal post type `wp_sync_storage` for CRDT collaboration data stored in
-      `wp_post_meta`. If your plugin queries `get_posts()`, `WP_Query`, or `wp_post_meta` without
-      a post type constraint, it may unexpectedly hit these internal sync records and return
-      bloated or incorrect result sets. Always add `'post_type__not_in' => [ 'wp_sync_storage' ]`
-      (or an explicit `post_type` constraint) to any query that is not scoped to specific CPTs.
+- [ ] **WP 7.0+ Real-Time Collaboration (RTC) — query exclusion (⚠️ PENDING FINAL DESIGN):**
+      WordPress 7.0 will store RTC collaboration data internally. Earlier RC builds used
+      `wp_post_meta` on an internal post type `wp_sync_storage`, but this design was rejected
+      and a dedicated new database table is being designed (cause of the WP 7.0 delay announced
+      April 2, 2026). The final storage mechanism is not yet confirmed.
+      **Interim guidance:** Add explicit `post_type` constraints to all `WP_Query`/`get_posts()`
+      calls so they are not affected by any internal post type WP 7.0 may introduce. Do NOT
+      hardcode `'post_type__not_in' => ['wp_sync_storage']` — that slug may not exist in the
+      final release. Use `'post_type' => 'your_cpt'` (explicit scoping) instead.
+      Monitor: make.wordpress.org/core/2026/04/02/the-path-forward-for-wordpress-7-0/
       Source: developer.wordpress.org/news/2026/03/whats-new-for-developers-march-2026/
 - [ ] **WP 6.9+ WP_Query cache key change** — WordPress 6.9 changed how cache keys are generated
       for queries performed through `WP_Query` (and other query classes: `WP_Term_Query`,

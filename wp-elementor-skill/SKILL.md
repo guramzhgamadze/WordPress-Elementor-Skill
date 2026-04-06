@@ -107,7 +107,7 @@ Quickly assess — **only ask if the answer would change the code**:
 | PHP version | Code uses PHP 8.3+ features like typed class constants, or 8.4+ features like property hooks |
 | WooCommerce / ACF / WPML present | Integration with those systems is required |
 
-**Default assumptions when not stated:** WordPress 6.9.4+ (WP 7.0 scheduled April 9, 2026),
+**Default assumptions when not stated:** WordPress 6.9.4+ (WP 7.0 DELAYED — was April 9, 2026; new date TBD by April 22, 2026),
 PHP 8.3+ (officially recommended by wordpress.org/about/requirements/; 8.4 and 8.5 = beta
 support label; 8.2 is fully compatible but no longer the recommended default),
 Elementor 4.0.0+ (free and Pro both version 4.0.0, released March 30, 2026). V3 Widget_Base API remains fully supported.
@@ -117,7 +117,7 @@ History: 3.35.8 (March 23) was a security release; 3.35.9 (March 25) fixed an
 AI-generated image insertion bug; 4.0.0 (March 30) is the current stable release.
 Always check both free and Pro when diagnosing compatibility issues. No multisite assumed.
 
-> 🔜 **WordPress 7.0 (April 9, 2026):** PHP 7.2 and 7.3 will no longer be supported. The new
+> 🔜 **WordPress 7.0 (DELAYED — was April 9, 2026; new schedule by April 22, 2026):** PHP 7.2 and 7.3 will no longer be supported. The new
 > minimum PHP version is 7.4.0. Sites still on PHP 7.2/7.3 will remain pinned to WP 6.9 and
 > will not receive the 7.0 update. The minimum **recommended** version remains PHP 8.3.
 > **Database:** No new minimum is enforced in WP 7.0 — the DB minimum was last bumped in
@@ -135,34 +135,47 @@ Always check both free and Pro when diagnosing compatibility issues. No multisit
 >   PHP + JS AI API. Use `function_exists('wp_ai_client_prompt')` to guard.
 > - **Connectors UI:** Settings → Connectors admin page for managing AI provider credentials.
 >   Hook: `connections-wp-admin-init`. ⚠️ **These names are PRE-STABLE and subject to change**
->   before the April 9, 2026 final release — guard all usage with `function_exists()` /
+>   before WP 7.0 stable ships — guard all usage with `function_exists()` /
 >   `did_action()` checks and do not ship production code depending on them until WP 7.0 stable.
 > - **Abilities API:** PHP side in WP 6.9 (`wp_register_ability()`); JS counterpart in WP 7.0.
 >   `'meta' => ['show_in_rest' => true]` to expose via REST.
 > - **Iframed Editor (PUNTED to WP 7.1):** No action required for WP 7.0. Prepare for 7.1
 >   with `"apiVersion": 3` in block.json.
 > - **Real-Time Collaboration (RTC):** WP 7.0 introduces simultaneous multi-author block
->   editing. Technically: HTTP polling sync provider (not WebRTC), CRDT update data stored
->   persistently in `wp_post_meta` on a new internal post type **`wp_sync_storage`**. Updates
->   are batched and periodically compacted. RTC default (opt-in vs opt-out) finalized around
->   RC2 — per official March 2026 developer news. The `WP_ALLOW_COLLABORATION` wp-config
+>   editing. Technically: HTTP polling sync provider (not WebRTC), CRDT-based sync.
+>   ⚠️ **STORAGE MECHANISM IN FLUX (as of April 2, 2026):** Earlier RC builds stored CRDT
+>   data in `wp_post_meta` on an internal post type `wp_sync_storage`, but this approach
+>   was rejected by project leadership as the reason for the WP 7.0 delay. A dedicated
+>   **new database table** is being designed to replace it. The `wp_sync_storage` post type
+>   and `wp_post_meta`-based exclusion advice below may NOT apply to the final release.
+>   Monitor `make.wordpress.org/core/` for the new schema announcement (expected by April 22).
+>   Updates are batched and periodically compacted. RTC default (opt-in vs opt-out) finalized
+>   around RC2 — per official March 2026 developer news. The `WP_ALLOW_COLLABORATION` wp-config
 >   constant lets hosts swap the transport provider. Expected to become opt-out in a future
 >   release once broader plugin coverage is confirmed.
 >   **Client-side Media Processing was reverted from 7.0 in Beta 6** (package size ~13 MB,
 >   Chromium-only, OOM crashes) — punted to WP 7.1. No action needed for 7.0.
->   **Plugin impact:** If your plugin queries `wp_post_meta` by post type or iterates all
->   posts/meta, add `'post_type__not_in' => ['wp_sync_storage']` (or equivalent exclusion)
->   to avoid unexpected hits on internal sync data.
+>   **Plugin impact (subject to change — see storage note above):** If your plugin queries
+>   `wp_post_meta` by post type or iterates all posts/meta, add an appropriate exclusion
+>   for the RTC storage type once the final table design is announced. For now, guard with
+>   a feature check rather than hardcoding `wp_sync_storage` as the excluded type.
 >   Source: developer.wordpress.org/news/2026/03/whats-new-for-developers-march-2026/,
->   make.wordpress.org/core/2026/03/19/wordpress-7-0-release-candidate-1-delayed/
->   Source (RC schedule): make.wordpress.org/core/2026/01/09/wordpress-7-0-call-for-volunteers/
+>   make.wordpress.org/core/2026/04/02/the-path-forward-for-wordpress-7-0/ (delay + table redesign)
 > - **WP 7.0 Beta cycle:** Beta 4 released **March 10, 2026** (emergency security fast-follow,
 >   same day as WordPress 6.9.2 and 6.9.3). **WordPress 6.9.4** was then released March 11, 2026
 >   after the Security Team found not all fixes in 6.9.2 were fully applied — 6.9.4 is the
 >   current stable release. Beta 5 released March 12, 2026. **Beta 6 released March 20, 2026**
 >   (reverts Client-side Media, includes RTC performance improvements, 4× polling interval).
 >   **RC1 released March 24, 2026** (was scheduled March 19 — delayed due to RTC performance
->   concerns and package bloat). **RC2 released March 26, 2026. RC3 scheduled April 2, 2026. Final release: April 9, 2026.**
+>   concerns and package bloat). **RC1 released March 24, 2026** (was scheduled March 19 — delayed due to RTC performance
+>   concerns and package bloat). **RC2 released March 26, 2026. RC3 released April 2, 2026.**
+>   ⚠️ **RELEASE DELAYED:** On March 31–April 2, 2026, WordPress co-founder Matt Mullenweg
+>   and release lead Matías Ventura announced WP 7.0 is officially delayed beyond April 9 to
+>   allow a proper new database table design for RTC (replacing the post_meta approach).
+>   Pre-release builds paused through April 17, 2026. New final schedule announced by April 22.
+>   Expected delay: approximately 3–4 weeks from original date.
+>   Source: make.wordpress.org/core/2026/04/02/the-path-forward-for-wordpress-7-0/,
+>   searchenginejournal.com/wordpress-delays-release-of-version-7-0-to-focus-on-stability/570944/
 >   Source: wordpress.org/news/2026/03/wordpress-6-9-3-and-7-0-beta-4/,
 >   wordpress.org/news/2026/03/wordpress-7-0-beta-5/,
 >   wordpress.org/news/2026/03/wordpress-6-9-4-release/,
