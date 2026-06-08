@@ -46,8 +46,8 @@ for the task at hand.
 | Heading / title / HTML tag selector | **widget-heading.md** |
 | Rich text / WYSIWYG body content | **widget-text-editor.md** |
 | Video embed (YouTube, Vimeo, self-hosted) | **widget-video.md** |
-| Widget that renders a saved Elementor template by ID | **widget-elementor-template.md** (concise) · **widget-template-elementor.md** (extended — SELECT2, Dynamic Tags, CSS timing) |
-| Widget whose markup lives in a separate PHP template file | **widget-php-template.md** (concise) · **widget-template-php.md** (extended — Strategies A/B/C, ob_start, path traversal) |
+| Widget that renders a saved Elementor template by ID | **widget-elementor-template.md** (SELECT2, `get_builder_content_for_display()`, Dynamic Tags context, CSS timing) |
+| Widget whose markup lives in a separate PHP template file | **widget-php-template.md** (Strategies A/B/C, `load_template()`, `ob_start`, path-traversal safety) |
 | Divider / horizontal rule with optional text or icon | **widget-divider.md** |
 | Spacer / vertical gap | **widget-spacer.md** |
 | Single standalone icon with optional link | **widget-icon.md** |
@@ -73,6 +73,8 @@ for the task at hand.
 | Google Maps embed | **widget-google-maps.md** |
 | Decorative star rating display | **widget-star-rating.md** |
 | Schema-ready structured rating | **widget-rating.md** |
+| Text following a curved / custom SVG path | **widget-text-path.md** |
+| Nested Tabs / Nested Accordion (each panel is a Container holding any widgets) | **widget-nested.md** |
 
 **Always read the relevant sub-file before writing code.** For tasks that span multiple
 areas (e.g. a WooCommerce widget with custom REST endpoint), read all relevant sub-files.
@@ -107,111 +109,72 @@ Quickly assess — **only ask if the answer would change the code**:
 | PHP version | Code uses PHP 8.3+ features like typed class constants, or 8.4+ features like property hooks |
 | WooCommerce / ACF / WPML present | Integration with those systems is required |
 
-**Default assumptions when not stated:** WordPress 6.9.4+ (WP 7.0 DELAYED — was April 9, 2026; new date TBD by April 22, 2026),
-PHP 8.3+ (officially recommended by wordpress.org/about/requirements/; 8.4 and 8.5 = beta
-support label; 8.2 is fully compatible but no longer the recommended default),
-Elementor 4.0.0+ (free and Pro both version 4.0.0, released March 30, 2026). V3 Widget_Base API remains fully supported.
-**Note:** Elementor core and Elementor Pro are separate plugins with independent version numbers
-**Note:** Elementor free and Pro both released **4.0.0 on March 30, 2026**.
-History: 3.35.8 (March 23) was a security release; 3.35.9 (March 25) fixed an
-AI-generated image insertion bug; 4.0.0 (March 30) is the current stable release.
-Always check both free and Pro when diagnosing compatibility issues. No multisite assumed.
+**Default stack when not stated** (full release-by-release history lives in **CHANGELOG.md** — keep volatile version-tracking out of this router):
 
-> 🔜 **WordPress 7.0 (DELAYED — was April 9, 2026; new schedule by April 22, 2026):** PHP 7.2 and 7.3 will no longer be supported. The new
-> minimum PHP version is 7.4.0. Sites still on PHP 7.2/7.3 will remain pinned to WP 6.9 and
-> will not receive the 7.0 update. The minimum **recommended** version remains PHP 8.3.
-> **Database:** No new minimum is enforced in WP 7.0 — the DB minimum was last bumped in
-> WP 6.5 (MySQL 5.5.5+). The official `wordpress.org/about/requirements/` page now lists
-> **MariaDB 10.6+ or MySQL 8.0+** as the primary recommended versions, and PHP 8.3+ as
-> the recommended PHP version.
-> Source: make.wordpress.org/core/2026/01/09/dropping-support-for-php-7-2-and-7-3/,
-> wordpress.org/about/requirements/
+| Component | Version | Notes |
+|---|---|---|
+| **WordPress** | **7.0+** | "Armstrong", released May 20, 2026. Minimum PHP raised to **7.4** (7.2/7.3 dropped — sites still on them stay pinned to 6.9.x). No multisite assumed. |
+| **PHP** | **8.3** recommended | 7.4 = WP 7.0 minimum. 8.4 / 8.5 = "beta support" (possible deprecation notices). 8.2 fully compatible but no longer the recommended default. |
+| **Elementor (free + Pro)** | **4.2+** | Separate plugins, shared version number. 4.0.0 (Mar 30, 2026) made the Atomic Editor stable + default for new installs; 4.2.0 (Jun 5, 2026) is current. **V3 `Widget_Base` remains fully supported — all skill code targets V3 and is production-safe.** |
+| **WooCommerce** | **10.8+** | HPOS default-on since 8.2. 10.7 (Apr 14, 2026) disabled HPOS "sync on read" by default — see woocommerce.md. |
 
-> 🤖 **WordPress 7.0 — New Developer APIs (WP AI Client + Connectors UI + Abilities API):**
-> All opt-in, no breaking changes. See quick summary below — these do not affect most
-> plugin/Elementor work in WP 7.0.
->
-> - **WP AI Client:** `wp_ai_client_prompt($prompt)->generate_text()` — provider-agnostic
->   PHP + JS AI API. Use `function_exists('wp_ai_client_prompt')` to guard.
-> - **Connectors UI:** Settings → Connectors admin page for managing AI provider credentials.
->   Hook: `connections-wp-admin-init`. ⚠️ **These names are PRE-STABLE and subject to change**
->   before WP 7.0 stable ships — guard all usage with `function_exists()` /
->   `did_action()` checks and do not ship production code depending on them until WP 7.0 stable.
-> - **Abilities API:** PHP side in WP 6.9 (`wp_register_ability()`); JS counterpart in WP 7.0.
->   `'meta' => ['show_in_rest' => true]` to expose via REST.
-> - **Iframed Editor (PUNTED to WP 7.1):** No action required for WP 7.0. Prepare for 7.1
->   with `"apiVersion": 3` in block.json.
-> - **Real-Time Collaboration (RTC):** WP 7.0 introduces simultaneous multi-author block
->   editing. Technically: HTTP polling sync provider (not WebRTC), CRDT-based sync.
->   ⚠️ **STORAGE MECHANISM IN FLUX (as of April 2, 2026):** Earlier RC builds stored CRDT
->   data in `wp_post_meta` on an internal post type `wp_sync_storage`, but this approach
->   was rejected by project leadership as the reason for the WP 7.0 delay. A dedicated
->   **new database table** is being designed to replace it. The `wp_sync_storage` post type
->   and `wp_post_meta`-based exclusion advice below may NOT apply to the final release.
->   Monitor `make.wordpress.org/core/` for the new schema announcement (expected by April 22).
->   Updates are batched and periodically compacted. RTC default (opt-in vs opt-out) finalized
->   around RC2 — per official March 2026 developer news. The `WP_ALLOW_COLLABORATION` wp-config
->   constant lets hosts swap the transport provider. Expected to become opt-out in a future
->   release once broader plugin coverage is confirmed.
->   **Client-side Media Processing was reverted from 7.0 in Beta 6** (package size ~13 MB,
->   Chromium-only, OOM crashes) — punted to WP 7.1. No action needed for 7.0.
->   **Plugin impact (subject to change — see storage note above):** If your plugin queries
->   `wp_post_meta` by post type or iterates all posts/meta, add an appropriate exclusion
->   for the RTC storage type once the final table design is announced. For now, guard with
->   a feature check rather than hardcoding `wp_sync_storage` as the excluded type.
->   Source: developer.wordpress.org/news/2026/03/whats-new-for-developers-march-2026/,
->   make.wordpress.org/core/2026/04/02/the-path-forward-for-wordpress-7-0/ (delay + table redesign)
-> - **WP 7.0 Beta cycle:** Beta 4 released **March 10, 2026** (emergency security fast-follow,
->   same day as WordPress 6.9.2 and 6.9.3). **WordPress 6.9.4** was then released March 11, 2026
->   after the Security Team found not all fixes in 6.9.2 were fully applied — 6.9.4 is the
->   current stable release. Beta 5 released March 12, 2026. **Beta 6 released March 20, 2026**
->   (reverts Client-side Media, includes RTC performance improvements, 4× polling interval).
->   **RC1 released March 24, 2026** (was scheduled March 19 — delayed due to RTC performance
->   concerns and package bloat). **RC1 released March 24, 2026** (was scheduled March 19 — delayed due to RTC performance
->   concerns and package bloat). **RC2 released March 26, 2026. RC3 released April 2, 2026.**
->   ⚠️ **RELEASE DELAYED:** On March 31–April 2, 2026, WordPress co-founder Matt Mullenweg
->   and release lead Matías Ventura announced WP 7.0 is officially delayed beyond April 9 to
->   allow a proper new database table design for RTC (replacing the post_meta approach).
->   Pre-release builds paused through April 17, 2026. New final schedule announced by April 22.
->   Expected delay: approximately 3–4 weeks from original date.
->   Source: make.wordpress.org/core/2026/04/02/the-path-forward-for-wordpress-7-0/,
->   searchenginejournal.com/wordpress-delays-release-of-version-7-0-to-focus-on-stability/570944/
->   Source: wordpress.org/news/2026/03/wordpress-6-9-3-and-7-0-beta-4/,
->   wordpress.org/news/2026/03/wordpress-7-0-beta-5/,
->   wordpress.org/news/2026/03/wordpress-6-9-4-release/,
->   make.wordpress.org/core/2026/02/12/wordpress-7-0-release-party-schedule/,
->   make.wordpress.org/core/2026/03/19/wordpress-7-0-release-candidate-1-delayed/
->   Source (RC schedule): make.wordpress.org/core/2026/01/09/wordpress-7-0-call-for-volunteers/
+**Note:** Elementor core and Elementor Pro have independent version numbers — always check **both** when diagnosing compatibility issues.
 
-> 📌 **PHP support labels (WP 6.9):**
-> - PHP 8.0–8.3 = fully compatible. PHP 7.4 = fully compatible.
-> - **PHP 8.3 = officially recommended** (raised from beta in July 2025).
-> - PHP 8.4 = beta support (WP 6.7+). PHP 8.5 = beta support (WP 6.9+).
-> - "Beta support" = actively working toward full compatibility; possible deprecation notices.
+### WordPress 7.0 — what changed for plugin / Elementor devs
+
+WP 7.0 "Armstrong" shipped **May 20, 2026** (delayed from the original April 9 target while
+the RTC storage layer was redesigned — see below). Everything below is **opt-in and
+non-breaking**; most plugin/Elementor work is unaffected.
+
+- **Minimum PHP is now 7.4** (7.2/7.3 dropped). The skill's recommended baseline stays
+  **PHP 8.3**. Bump your plugin's `Requires PHP` header to 7.4 only once you target WP 7.0+
+  exclusively. No new DB minimum is enforced; `wordpress.org/about/requirements/` recommends
+  **MariaDB 10.6+ or MySQL 8.0+**.
+- **Real-Time Collaboration (RTC):** simultaneous multi-author block editing (CRDT-based, via
+  an HTTP-polling sync provider — not WebRTC). Data is stored in a **dedicated core database
+  table**; an earlier `wp_post_meta` / `wp_sync_storage` design was rejected, and building the
+  table is what pushed the release from April to May. **Plugin impact:** scope every
+  `WP_Query` / `get_posts()` with an explicit `post_type` so internal core post types never
+  leak into your results — do **not** hardcode any internal RTC type name. The
+  `WP_ALLOW_COLLABORATION` constant lets hosts swap the sync transport.
+- **WP AI Client:** provider-agnostic PHP + JS AI API — `wp_ai_client_prompt( $prompt )->generate_text()`.
+  Guard with `function_exists( 'wp_ai_client_prompt' )`.
+- **Abilities API:** `wp_register_ability()` (PHP, since WP 6.9) plus a JS counterpart in 7.0.
+  Use `'meta' => ['show_in_rest' => true]` to expose via REST.
+- **Connectors UI** (Settings → Connectors) for managing AI provider credentials, and a
+  **Command Palette** in wp-admin.
+- **Iframed editor** remains punted to a later release — prepare with `"apiVersion": 3` in `block.json`.
+
+_Sources: make.wordpress.org/core/2026/01/09/dropping-support-for-php-7-2-and-7-3/ ·
+make.wordpress.org/core/2026/04/22/wordpress-7-0-release-party-updated-schedule/ ·
+wordpress.org/about/requirements/_
+
+> 📌 **PHP support labels (WP 7.0):** PHP 7.4–8.3 fully compatible; **8.3 recommended**;
+> 8.4 (WP 6.7+) and 8.5 (WP 6.9+) carry a "beta support" label (possible deprecation notices).
 > Source: make.wordpress.org/core/handbook/references/php-compatibility-and-wordpress-versions/
 
-> ✅ **Elementor 4.0.0 RELEASED March 30, 2026 (free + Pro simultaneously):**
-> - **Elementor free 4.0.0** (March 30, 2026): Atomic Editor status set to **Stable**;
->   enabled by default for all new site installations; Global Style sync (Variables/Classes
->   → legacy Global Styles); self-hosted Video Atomic Element; new onboarding flow.
->   Source: github.com/elementor/elementor/blob/main/changelog.txt (= 4.0.0 - 2026-03-30)
->         · wordpress.org/plugins/elementor/ (version 4.0.0, last updated Mar 30, 2026)
-> - **Elementor Pro 4.0.0** (March 30, 2026): Atomic Forms (composable Label/Input/Textarea/
->   Submit atoms); Pro Interactions (scroll-triggered, hover, click; Custom Effect with
->   Scale/Move/Rotate/Skew; breakpoint controls); Component creation & detach for Pro users;
->   custom fonts in typography controls.
->   Source: elementor.com/pro/changelog/ (= 4.0.0 - 2026-03-30)
-> - **What 4.0 changes for new sites:** The Atomic Editor is now the default experience.
->   Atomic Elements, Variables, Classes, and Components are enabled on fresh installs.
-> - **What 4.0 does NOT change for existing sites:** Updating to 4.0 leaves current sites
->   fully untouched. V3 widgets and V4 Atomic Elements coexist on the same page. Atomic
->   features can be enabled manually: WP Admin → Elementor → Editor → Settings → Atomic Editor.
->   Source: elementor.com/products/website-builder/v4-faq/
-> - **V3 `Widget_Base` remains fully supported in 4.0** — all skill code targets V3 and is
->   production-safe on any site. The V4 Atomic Element PHP extension API is now **Stable**
->   in 4.0, but the third-party extension documentation is still being finalized. Third-party
->   plugins should continue using V3 `Widget_Base` until official V4 PHP extension docs ship.
->   Source: developers.elementor.com/elementor-editor-4-0-developers-update/
+> ✅ **Elementor 4.x status (current: 4.2.0, June 5, 2026):** Elementor 4.0.0 (Mar 30, 2026,
+> free + Pro) made the **Atomic Editor stable and the default for new installs** and added
+> Atomic Forms, Pro Interactions, and Component creation. Updating to 4.x leaves **existing
+> sites untouched** — V3 widgets and V4 Atomic Elements coexist on the same page; Atomic
+> features are toggled at WP Admin → Elementor → Editor → Settings. The V4 Atomic Element PHP
+> extension API is stable, but third-party extension docs are still being finalized — so
+> **continue using V3 `Widget_Base`** for all third-party widgets. It is the correct,
+> production-safe API and all skill code targets it.
+>
+> **V4 Atomic Elements that now ship by default (awareness only — not third-party-buildable yet):**
+> Div Block & Flexbox Container (layout); Atomic Heading, Paragraph, Image, Button, Video, SVG;
+> **Atomic Tabs**; and **Atomic Forms** (Pro) with composable fields — Label, Input, Textarea,
+> Checkbox, Submit, plus Radio, Select, Date Picker, Time Picker, and File Upload (added in
+> Pro 4.1.0, May 26, 2026). These are end-user elements; building **custom** atomic elements
+> still awaits the finalized V4 extension docs — keep targeting V3 `Widget_Base` until then.
+> Source: elementor.com/products/website-builder/v4-faq/ ·
+> developers.elementor.com/elementor-editor-4-0-developers-update/ ·
+> elementor.com/pro/changelog/ · github.com/elementor/elementor/releases
+
+> 🗓️ **Release-by-release history (betas, RCs, point releases) lives in `CHANGELOG.md`.**
+> Keep this router focused on durable guidance; update version facts in the table above
+> and in `CHANGELOG.md`, not scattered across the sub-files.
 ---
 
 ## 2. Architecture Decision Tree
@@ -301,8 +264,8 @@ activate plugin, clear Elementor cache, etc.
 | Widget with heading | TEXTAREA + header_size tag selector | widget-heading.md |
 | Widget with rich text | WYSIWYG + wp_kses_post output | widget-text-editor.md |
 | Widget with video embed | Source SELECT + overlay + aspect ratio | widget-video.md |
-| Widget rendering saved Elementor template | get_builder_content_for_display() + SELECT2 | widget-elementor-template.md · widget-template-elementor.md |
-| Widget with PHP template file | load_template() + locate_template() strategies A/B/C | widget-php-template.md · widget-template-php.md |
+| Widget rendering saved Elementor template | get_builder_content_for_display() + SELECT2 | widget-elementor-template.md |
+| Widget with PHP template file | load_template() + locate_template() strategies A/B/C | widget-php-template.md |
 | Widget with divider line | Style + width + optional text/icon element | widget-divider.md |
 | Widget with spacer gap | Single responsive SLIDER | widget-spacer.md |
 | Widget with single icon | ICONS control + size + color tabs | widget-icon.md |
@@ -328,6 +291,8 @@ activate plugin, clear Elementor cache, etc.
 | Widget with Google Maps | Address TEXT + zoom SLIDER + iframe | widget-google-maps.md |
 | Widget with star rating display | Scale + rating number + icon style | widget-star-rating.md |
 | Widget with schema rating | Icon count + fractional rating + gap | widget-rating.md |
+| Widget with curved/path text | `<svg>` + `<textPath>` + unique path id | widget-text-path.md |
+| Nested Tabs / Accordion widget | `Widget_Nested_Base` + `print_child()` + container panels | widget-nested.md |
 
 ---
 
@@ -462,6 +427,14 @@ The official Elementor API for building HTML attributes is `$this->add_render_at
 **Always use it** instead of manually concatenating class/id/aria attributes in `render()`.
 Pair with `$this->add_inline_editing_attributes()` for any text field that supports live
 editing in the Elementor editor panel.
+
+**Outputting the built attributes — pick by context:** use
+`get_render_attribute_string( 'key' )` when you are concatenating into a string (as in the
+`echo '<h2 ' . ... . '>'` example above), and `print_render_attribute_string( 'key' )` when
+you are echoing directly inside a `?> … <?php` HTML block (e.g.
+`<h2 <?php $this->print_render_attribute_string( 'title' ); ?>>`). Both are correct Elementor
+APIs — `print_*` simply echoes what `get_*` returns. The widget sub-files use the `print_*`
+form inside their HTML templates.
 
 Source: developers.elementor.com/docs/widgets/rendering-html-attribute/
 Source: developers.elementor.com/docs/widgets/rendering-inline-editing/

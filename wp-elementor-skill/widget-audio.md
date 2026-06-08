@@ -1,7 +1,7 @@
 # Widget Boilerplate — Audio
 
 > **When to use this file:** Load whenever building a widget that embeds SoundCloud or self-hosted audio.
-> Verified against `elementor/includes/widgets/audio.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/audio.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

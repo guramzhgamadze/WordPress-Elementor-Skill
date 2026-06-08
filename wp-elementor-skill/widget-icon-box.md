@@ -1,7 +1,7 @@
 # Widget Boilerplate — Icon Box
 
 > **When to use this file:** Load whenever building a widget combining an icon with a title and description.
-> Verified against `elementor/includes/widgets/icon-box.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/icon-box.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

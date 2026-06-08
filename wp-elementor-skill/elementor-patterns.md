@@ -2,7 +2,7 @@
 
 ## V4 Compatibility Rules (Apply Now)
 
-> ✅ **V4 / Elementor 4.0 is STABLE — apply these rules to all new code:**
+> ✅ **V4 / Elementor 4.x is STABLE (current: 4.2) — apply these rules to all new code:**
 > 1. **NEVER target `.elementor-widget-container` in CSS or JS** — does NOT exist in V4
 >    Atomic Elements; removed from V3 widgets when Optimized Markup is active (opt-in in
 >    3.35.x, **on by default for all new sites since Elementor 4.0**). Write all new code
@@ -250,7 +250,7 @@ add_action( 'elementor/widgets/register', function( \Elementor\Widgets_Manager $
 
 ## Dynamic Tag Registration
 
-> **Dynamic Tag Category Reference (as of Elementor 3.35):**
+> **Dynamic Tag Category Reference (current as of Elementor 4.2; unchanged since 3.x):**
 >
 > | Constant | Value | Available in | Use for |
 > |---|---|---|---|

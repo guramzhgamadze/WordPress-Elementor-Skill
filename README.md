@@ -22,15 +22,15 @@ The documentation is split into focused, single-topic files. `SKILL.md` is the r
 
 | File | What it covers |
 |---|---|
-| [`SKILL.md`](./wp-elementor-skill/SKILL.md) | **Router & Golden Rules.** Default assumptions, architecture decision tree, output format, widget boilerplate map, Elementor 4.0 status. Start here. |
+| [`SKILL.md`](./wp-elementor-skill/SKILL.md) | **Router & Golden Rules.** Default assumptions, architecture decision tree, output format, widget boilerplate map, current stack (WP 7.0 / Elementor 4.x / WC 10.8). Start here. |
 | [`scaffolding.md`](./wp-elementor-skill/scaffolding.md) | **Plugin & Theme Structure.** Plugin bootstrap pattern, singleton class, child theme setup, Custom Post Types, taxonomy registration, AJAX handlers, V4 widget registration reminder. |
 | [`php-standards.md`](./wp-elementor-skill/php-standards.md) | **PHP Best Practices.** Sanitization, escaping, nonce verification, `WP_Error`, transient caching, `declare(strict_types=1)`, WP 6.8+ bcrypt/BLAKE2b password hashing. |
-| [`js-css-standards.md`](./wp-elementor-skill/js-css-standards.md) | **Frontend Standards.** ES6+ IIFE pattern, `elementor/frontend/init` event, WP 6.3+ defer/async enqueue API, `wp_add_inline_script`, BEM CSS, scoped design tokens, Elementor 4.0 selector rules. |
-| [`elementor-patterns.md`](./wp-elementor-skill/elementor-patterns.md) | **Elementor 4.0 Integration.** V4 stable rules, full custom widget pattern (`has_widget_inner_wrapper`, `is_dynamic_content`, `content_template`), mandatory no-hardcoded-visuals rule, Dynamic Tags, Loop Grid query filter, Pro Form custom actions, Theme Builder custom conditions. |
+| [`js-css-standards.md`](./wp-elementor-skill/js-css-standards.md) | **Frontend Standards.** ES6+ IIFE pattern, `elementor/frontend/init` event, WP 6.3+ defer/async enqueue API, `wp_add_inline_script`, BEM CSS, scoped design tokens, Elementor 4.x selector rules. |
+| [`elementor-patterns.md`](./wp-elementor-skill/elementor-patterns.md) | **Elementor 4.x Integration.** V4 stable rules, full custom widget pattern (`has_widget_inner_wrapper`, `is_dynamic_content`, `content_template`), mandatory no-hardcoded-visuals rule, Dynamic Tags, Loop Grid query filter, Pro Form custom actions, Theme Builder custom conditions. |
 | [`woocommerce.md`](./wp-elementor-skill/woocommerce.md) | **WooCommerce Integration.** HPOS compatibility declaration, Order API rules (`wc_get_order`, `get_meta`, `update_meta_data`), Loop Grid for products, hook-based additions, template overrides. WC 10.7 sync-on-read change with source citation. |
 | [`rest-api.md`](./wp-elementor-skill/rest-api.md) | **Custom REST Endpoints.** `register_rest_route`, JSON Schema draft-04, `rest_validate_request_arg`, `WP_Error` permission callbacks, REST nonce pattern + refresh, global post context setup. |
 | [`offcanvas-ui.md`](./wp-elementor-skill/offcanvas-ui.md) | **Accessible Off-Canvas UI.** Full PHP/CSS/JS pattern — `inert` attribute set in HTML markup, CSS class toggle, `myplugin-offcanvas__backdrop--hidden` in HTML, ARIA `dialog` + `aria-modal`, focus trap, iOS Safari scroll lock, `prefers-reduced-motion` support. |
-| [`performance.md`](./wp-elementor-skill/performance.md) | **Performance & Accessibility Checklists.** Frontend (LCP, lazy loading, WP 6.7+ auto-sizes, WP 6.9+ IE conditional comments, WP 6.8+ Speculative Loading), backend (WP_Query optimizations, WP 6.9+ salted cache keys, WP 7.0+ `wp_sync_storage` exclusion), WCAG 2.2 AA. |
+| [`performance.md`](./wp-elementor-skill/performance.md) | **Performance & Accessibility Checklists.** Frontend (LCP, lazy loading, WP 6.7+ auto-sizes, WP 6.9+ IE conditional comments, WP 6.8+ Speculative Loading), backend (WP_Query optimizations, WP 6.9+ salted cache keys, WP 7.0 RTC query scoping), WCAG 2.2 AA. |
 
 ---
 
@@ -52,11 +52,10 @@ All patterns in this repository target a modern production stack. Unless a speci
 
 | Component | Version | Notes |
 |---|---|---|
-| **WordPress** | 6.9.4+ | WP 7.0 scheduled April 9, 2026 (RC2 released). PHP 7.2/7.3 support dropped in 7.0; new minimum is PHP 7.4. |
-| **PHP** | 8.3+ | Officially recommended by wordpress.org. PHP 8.4 and 8.5 carry a "beta support" label — possible deprecation notices. |
-| **Elementor (free)** | **4.0.0** | Released March 30, 2026. Atomic Editor is now **Stable** and default for new installs. V3 `Widget_Base` remains fully supported. |
-| **Elementor Pro** | **4.0.0** | Released March 30, 2026 alongside free. Adds Atomic Forms, Pro Interactions, Component creation. V3 fully supported. |
-| **WooCommerce** | 8.2+ | HPOS enabled by default for new stores. WC 10.7 (scheduled April 14, 2026) disables HPOS "sync on read" by default — see `woocommerce.md`. |
+| **WordPress** | **7.0+** | "Armstrong", released May 20, 2026. Minimum PHP raised to 7.4 (7.2/7.3 dropped). RTC stored in a dedicated core table. |
+| **PHP** | 8.3+ recommended | 7.4 is the WP 7.0 minimum. PHP 8.4 and 8.5 carry a "beta support" label — possible deprecation notices. |
+| **Elementor (free + Pro)** | **4.2.0** | Current as of June 5, 2026. 4.0.0 (Mar 30, 2026) made the Atomic Editor stable and default for new installs. **V3 `Widget_Base` remains fully supported — all skill code targets V3.** |
+| **WooCommerce** | **10.8+** | HPOS enabled by default for new stores since 8.2. WC 10.7 (April 14, 2026) disabled HPOS "sync on read" by default — see `woocommerce.md`. |
 
 ---
 
@@ -72,18 +71,17 @@ Once installed as a skill in Claude:
 
 ## Keeping This Up to Date
 
-This skill is actively maintained and audited against official live sources after every significant release. Audit history:
+This skill is audited against official live sources after every significant release.
+The full round-by-round history lives in [`CHANGELOG.md`](./CHANGELOG.md).
 
-- **Rounds 1–13** — Original monolithic `SKILL.md` (56 bugs fixed)
-- **Round 14** — Split into 9-file bundle; Elementor free updated 3.35.6 → 3.35.7
-- **Round 15** — WordPress 6.9.3 → 6.9.4; WP 7.0 Beta 5 confirmed released; `wp_kces_post` typo fixed → `wp_kses_post`
-- **Round 16** — Full verification pass; all facts confirmed clean against live sources (March 16, 2026)
-- **Round 17** — Fixed missing `inert` attribute on off-canvas HTML panel; added JSON Schema draft-04 comment to `rest-api.md`; synced WP 7.0 Beta 6 / RC1 details
-- **Round 18** — Fixed backdrop overlay visible before JS load (`offcanvas-ui.md`); added pre-stable caveat to WP 7.0 AI Client API names; added `woocommerce_hpos_enable_sync_on_read` source citation; 46-file full scan
-- **Round 19** — Live-source audit: updated Elementor 4.0 Beta status across 4 files; confirmed V3 `Widget_Base` fully supported; updated V4 rules preamble
-- **Round 20** — **Live-source audit (April 2, 2026):** Elementor **4.0.0 released March 30, 2026** (free + Pro simultaneously). Updated version numbers from 3.35.9/3.35.1 → 4.0.0 in `SKILL.md` (default assumptions + V4 note) and `elementor-patterns.md` (V4 rules preamble). Atomic Editor is now Stable; V4 PHP extension API is Stable in 4.0 but third-party extension docs still being finalized — skill continues targeting V3 `Widget_Base`. WC 10.7 confirmed still upcoming. All other patterns verified clean. Sources: `github.com/elementor/elementor` changelog · `elementor.com/pro/changelog/` · `wordpress.org/plugins/elementor/`
+**Latest — Round 21 (June 8, 2026):** Post-release currency sweep. WordPress **7.0 "Armstrong"**
+shipped May 20, 2026; Elementor is at **4.2.0** (June 5, 2026); WooCommerce **10.8** (May 26, 2026).
+This round removed the obsolete WP 7.0 beta/RC/delay narration from the router, settled the RTC
+storage and WooCommerce 10.7 sections into shipped fact, consolidated two pairs of duplicate
+widget-template files into one each, and moved release history into `CHANGELOG.md` so version
+facts live in a single place.
 
-**Next scheduled audit:** April 9–14, 2026 — after WordPress 7.0 stable and WooCommerce 10.7 both ship.
+**Next scheduled audit:** after the next WordPress release (7.0.x / 7.1) or a major Elementor release.
 
 ---
 

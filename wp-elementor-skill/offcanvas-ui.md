@@ -1,5 +1,16 @@
 # Off-Canvas Filter UI — Full Pattern
 
+> **Native Off-Canvas widget vs this pattern — pick the right tool:**
+> Elementor ships a free native **Off-Canvas** widget (since ~3.23). Prefer it when the panel is
+> **content designed visually in the editor** (menus, a cart drawer, promo content) and a
+> trigger/overlay/close out of the box is enough — no code required.
+> Use **this custom-code pattern** when you need: a panel rendered at `wp_body_open` (outside any
+> transformed Elementor ancestor — see the transform trap below), a **filter UI** wired to a Loop
+> Grid / custom query, an `inert` + focus-trap implementation you fully control, or behaviour the
+> native widget doesn't expose. The two are not mutually exclusive — you can style the native
+> widget and reserve this pattern for bespoke cases.
+> Native widget docs: elementor.com/help/off-canvas-widget/
+
 ```php
 // Placement: Elementor Custom Code → wp_body_open
 // CSS must hide the panel by default via class, NOT aria-hidden on the element itself.

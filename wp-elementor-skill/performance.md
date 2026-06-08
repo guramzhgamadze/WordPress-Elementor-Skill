@@ -47,17 +47,15 @@
 - [ ] Transient keys are ≤ 172 characters — dynamic keys use `md5()` to prevent silent cache misses
 - [ ] No `SELECT *` — use `$wpdb->get_results` with explicit column names
 - [ ] No queries inside loops — pre-fetch with a single WP_Query, then loop results
-- [ ] **WP 7.0+ Real-Time Collaboration (RTC) — query exclusion (⚠️ PENDING FINAL DESIGN):**
-      WordPress 7.0 will store RTC collaboration data internally. Earlier RC builds used
-      `wp_post_meta` on an internal post type `wp_sync_storage`, but this design was rejected
-      and a dedicated new database table is being designed (cause of the WP 7.0 delay announced
-      April 2, 2026). The final storage mechanism is not yet confirmed.
-      **Interim guidance:** Add explicit `post_type` constraints to all `WP_Query`/`get_posts()`
-      calls so they are not affected by any internal post type WP 7.0 may introduce. Do NOT
-      hardcode `'post_type__not_in' => ['wp_sync_storage']` — that slug may not exist in the
-      final release. Use `'post_type' => 'your_cpt'` (explicit scoping) instead.
-      Monitor: make.wordpress.org/core/2026/04/02/the-path-forward-for-wordpress-7-0/
-      Source: developer.wordpress.org/news/2026/03/whats-new-for-developers-march-2026/
+- [ ] **WP 7.0 Real-Time Collaboration (RTC) — scope your queries:** WP 7.0 (released May 20,
+      2026) stores RTC collaboration data in a **dedicated core database table**, not in
+      `wp_posts`/`wp_post_meta`. (An earlier `wp_sync_storage` post-meta design was rejected;
+      building the table is what delayed 7.0 from April to May.) Because the data lives in its
+      own table, general post queries are not polluted by it — but the durable best practice
+      stands: give every `WP_Query`/`get_posts()` an explicit `'post_type' => 'your_cpt'` rather
+      than relying on defaults, so no future internal post type can ever leak into your results.
+      Do not hardcode exclusions against internal core type slugs.
+      Source: make.wordpress.org/core/2026/04/22/wordpress-7-0-release-party-updated-schedule/
 - [ ] **WP 6.9+ WP_Query cache key change** — WordPress 6.9 changed how cache keys are generated
       for queries performed through `WP_Query` (and other query classes: `WP_Term_Query`,
       `WP_Comment_Query`, `WP_User_Query`, etc.). Cache keys now store alongside the

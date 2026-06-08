@@ -1,7 +1,7 @@
 # Widget Boilerplate — Tabs
 
 > **When to use this file:** Load whenever building a widget that shows multiple content panels via clickable tabs.
-> Verified against `elementor/includes/widgets/tabs.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/tabs.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 > ✅ Uses REPEATER control — each tab is one repeater item with title + content.
 
 ---
@@ -190,6 +190,14 @@ protected function render(): void {
     <?php
 }
 ```
+
+> ⚠️ **Keyboard interaction requirement (ARIA APG §Tabs):** Elements with `role="tab"` are
+> not native controls, so the markup above is not keyboard-operable on its own. Your widget JS
+> **MUST** handle: `Enter`/`Space` to activate the focused tab, `ArrowLeft`/`ArrowRight` (or
+> Up/Down for vertical) to move focus between tabs, and roving `tabindex` (`0` on the active
+> tab, `-1` on the rest — already emitted by `render()`). Activate the panel on focus or on
+> Enter/Space, and keep `aria-selected` + `tabindex` in sync.
+> Source: w3.org/WAI/ARIA/apg/patterns/tabs/
 
 > **Remove checklist:**
 > - `type` + `tab_align_horizontal` → remove if tabs are always horizontal

@@ -1,7 +1,7 @@
 # Widget Boilerplate — Divider
 
 > **When to use this file:** Load whenever building a widget that separates content sections with a styled line.
-> Verified against `elementor/includes/widgets/divider.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/divider.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

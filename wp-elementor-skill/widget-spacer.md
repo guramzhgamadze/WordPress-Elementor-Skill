@@ -1,7 +1,7 @@
 # Widget Boilerplate — Spacer
 
 > **When to use this file:** Load whenever building a widget that adds vertical space between elements.
-> Verified against `elementor/includes/widgets/spacer.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/spacer.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

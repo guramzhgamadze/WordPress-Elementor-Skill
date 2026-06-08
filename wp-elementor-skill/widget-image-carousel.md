@@ -1,7 +1,7 @@
 # Widget Boilerplate — Image Carousel
 
 > **When to use this file:** Load whenever building a widget showing a rotating image slider/carousel.
-> Verified against `elementor/includes/widgets/image-carousel.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/image-carousel.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 > ✅ Relies on Swiper JS (bundled with Elementor) for carousel behaviour.
 
 ---

@@ -1,7 +1,7 @@
 # Widget Boilerplate — Social Icons
 
 > **When to use this file:** Load whenever building a widget showing a row of social media icon links.
-> Verified against `elementor/includes/widgets/social-icons.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/social-icons.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 
@@ -34,8 +34,24 @@ protected function register_controls(): void {
         'type'    => \Elementor\Controls_Manager::SELECT,
         'default' => 'default',
         'options' => [
-            'default' => esc_html__( 'Official Color', 'myplugin' ),
-            'custom'  => esc_html__( 'Custom',         'myplugin' ),
+            // 'default' = inherit the global Primary/Hover colors from the Style tab.
+            // (This boilerplate does not implement per-brand "official" colors — that would
+            // require a full brand-color lookup table. Use 'custom' for a per-item color.)
+            'default' => esc_html__( 'Default', 'myplugin' ),
+            'custom'  => esc_html__( 'Custom',  'myplugin' ),
+        ],
+    ] );
+
+    // ✅ Per-item color, shown only when item_icon_color = 'custom'. The {{CURRENT_ITEM}}
+    // token resolves to `.elementor-repeater-item-{id}` — which render() must add to the
+    // <a> (see below) for this selector to target the right item.
+    $repeater->add_control( 'item_icon_primary_color', [
+        'label'     => esc_html__( 'Custom Color', 'myplugin' ),
+        'type'      => \Elementor\Controls_Manager::COLOR,
+        'condition' => [ 'item_icon_color' => 'custom' ],
+        'selectors' => [
+            '{{WRAPPER}} {{CURRENT_ITEM}} i'   => 'color: {{VALUE}};',
+            '{{WRAPPER}} {{CURRENT_ITEM}} svg' => 'fill: {{VALUE}};',
         ],
     ] );
 
@@ -163,9 +179,20 @@ protected function render(): void {
             if ( ! empty( $item['link']['url'] ) ) {
                 $this->add_link_attributes( 'social-icon-' . $item['_id'], $item['link'] );
             }
+
+            // ✅ ACCESSIBILITY: the icon is aria-hidden, so without this the link has NO
+            // accessible name (WCAG 2.4.4 / 4.1.2 failure — screen readers announce an empty
+            // link). Derive a readable label from the icon class (e.g. "fab fa-x-twitter" →
+            // "X-twitter"), mirroring how Elementor's native widget adds an .elementor-screen-only
+            // label. Hide it visually with a clip utility class (position:absolute; width:1px; etc.).
+            $icon_value = $item['social_icon']['value'] ?? '';
+            $sr_label   = $icon_value
+                ? ucfirst( preg_replace( '/^.*fa-/', '', $icon_value ) )
+                : esc_html__( 'Social link', 'myplugin' );
             ?>
-            <a class="myplugin-social-icon" <?php $this->print_render_attribute_string( 'social-icon-' . $item['_id'] ); ?>>
+            <a class="myplugin-social-icon elementor-repeater-item-<?php echo esc_attr( $item['_id'] ); ?>" <?php $this->print_render_attribute_string( 'social-icon-' . $item['_id'] ); ?>>
                 <?php \Elementor\Icons_Manager::render_icon( $item['social_icon'], [ 'aria-hidden' => 'true' ] ); ?>
+                <span class="myplugin-screen-only"><?php echo esc_html( $sr_label ); ?></span>
             </a>
         <?php endforeach; ?>
     </div>
@@ -186,7 +213,7 @@ protected function content_template(): void {
             // ✅ Official Elementor pattern — link.url used directly per official advanced example
             var url = item.link && item.link.url ? item.link.url : '#';
         #>
-        <a class="myplugin-social-icon" href="{{ url }}">{{{ iconHTML.value }}}</a>
+        <a class="myplugin-social-icon elementor-repeater-item-{{ item._id }}" href="{{ url }}">{{{ iconHTML.value }}}</a>
         <# } ); #>
     </div>
     <?php

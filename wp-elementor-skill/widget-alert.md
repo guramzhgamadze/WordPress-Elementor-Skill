@@ -1,7 +1,7 @@
 # Widget Boilerplate — Alert
 
 > **When to use this file:** Load whenever building a colored notice/alert box widget.
-> Verified against `elementor/includes/widgets/alert.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/alert.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 
@@ -23,7 +23,11 @@ protected function register_controls(): void {
             'warning' => esc_html__( 'Warning', 'myplugin' ),
             'danger'  => esc_html__( 'Danger',  'myplugin' ),
         ],
-        'prefix_class' => 'elementor-alert-',
+        // ✅ The selected type drives a `.myplugin-alert--{type}` modifier class on the alert
+        // element in render() (see below) + the default CSS at the bottom of this file.
+        // Do NOT use prefix_class => 'elementor-alert-': that writes the class to the widget
+        // WRAPPER and depends on Elementor's native alert CSS being loaded, which is NOT
+        // guaranteed for a custom widget — the colors would silently never appear.
     ] );
 
     $this->add_control( 'alert_title', [
@@ -59,6 +63,21 @@ protected function register_controls(): void {
     $this->start_controls_section( 'section_type_style', [
         'label' => esc_html__( 'Alert Box', 'myplugin' ),
         'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+    ] );
+
+    // ✅ Background + Text color controls OVERRIDE the per-type CSS defaults — so visuals
+    // remain fully user-controllable (SKILL.md §0 Golden Rule #6). Leave empty to keep the
+    // type preset; set a value to override it.
+    $this->add_control( 'background_color', [
+        'label'     => esc_html__( 'Background Color', 'myplugin' ),
+        'type'      => \Elementor\Controls_Manager::COLOR,
+        'selectors' => [ '{{WRAPPER}} .myplugin-alert' => 'background-color: {{VALUE}};' ],
+    ] );
+
+    $this->add_control( 'alert_text_color', [
+        'label'     => esc_html__( 'Text Color', 'myplugin' ),
+        'type'      => \Elementor\Controls_Manager::COLOR,
+        'selectors' => [ '{{WRAPPER}} .myplugin-alert' => 'color: {{VALUE}};' ],
     ] );
 
     $this->add_group_control(
@@ -99,8 +118,11 @@ protected function is_dynamic_content(): bool {
 
 protected function render(): void {
     $settings = $this->get_settings_for_display();
+    // ✅ Type modifier class on the alert element itself — this is what makes the
+    // info/success/warning/danger colors actually apply (see CSS block below).
+    $type = ! empty( $settings['alert_type'] ) ? $settings['alert_type'] : 'info';
     ?>
-    <div class="myplugin-alert" role="alert">
+    <div class="myplugin-alert myplugin-alert--<?php echo esc_attr( $type ); ?>" role="alert">
         <?php if ( 'show' === $settings['show_dismiss'] ) : ?>
             <button type="button" class="myplugin-alert-dismiss" aria-label="<?php esc_attr_e( 'Close', 'myplugin' ); ?>">
                 &times;
@@ -126,8 +148,10 @@ protected function render(): void {
 ```php
 protected function content_template(): void {
     ?>
-    <# if ( settings.alert_title || settings.alert_description ) { #>
-    <div class="myplugin-alert" role="alert">
+    <# if ( settings.alert_title || settings.alert_description ) {
+        var type = settings.alert_type || 'info';
+    #>
+    <div class="myplugin-alert myplugin-alert--{{ type }}" role="alert">
         <# if ( 'show' === settings.show_dismiss ) { #>
             <button type="button" class="myplugin-alert-dismiss">&times;</button>
         <# } #>
@@ -140,5 +164,38 @@ protected function content_template(): void {
     </div>
     <# } #>
     <?php
+}
+```
+
+---
+
+**Default styles** (`assets/css/myplugin-alert.css` — register it and declare via
+`get_style_depends()`; see `elementor-patterns.md` Step 2). These are sensible **defaults**;
+the Style-tab Background / Text / Border controls override them, so visuals stay user-controlled.
+
+```css
+/* Baseline layout + per-type default colors (mirrors how Elementor's own alert ships presets). */
+.myplugin-alert {
+    position: relative;
+    padding: 15px;
+    border-left: 5px solid transparent;
+}
+.myplugin-alert--info    { background: #d9edf7; border-color: #5bc0de; color: #31708f; }
+.myplugin-alert--success { background: #dff0d8; border-color: #5cb85c; color: #3c763d; }
+.myplugin-alert--warning { background: #fcf8e3; border-color: #f0ad4e; color: #8a6d3b; }
+.myplugin-alert--danger  { background: #f2dede; border-color: #d9534f; color: #a94442; }
+.myplugin-alert-title       { display: block; font-weight: 700; }
+.myplugin-alert-description { display: block; }
+.myplugin-alert-dismiss {
+    position: absolute;
+    top: 10px;
+    inset-inline-end: 12px;
+    padding: 0;
+    background: none;
+    border: 0;
+    font-size: 18px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
 }
 ```

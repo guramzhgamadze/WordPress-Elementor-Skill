@@ -1,7 +1,7 @@
 # Widget Boilerplate — Accordion
 
 > **When to use this file:** Load whenever building a collapsible content widget where one panel opens at a time.
-> Verified against `elementor/includes/widgets/accordion.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/accordion.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 > Toggle widget is identical except `multiple_active` defaults to 'yes' — note at bottom.
 
 ---

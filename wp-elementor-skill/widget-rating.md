@@ -1,7 +1,7 @@
 # Widget Boilerplate — Rating
 
 > **When to use this file:** Load whenever building a structured data / schema-ready rating widget.
-> Verified against `elementor/includes/widgets/rating.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/rating.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 > ⚠️ This is the newer Rating widget (added ~3.17) — distinct from Star Rating. It supports
 > schema markup and fractional ratings. Use Star Rating for purely decorative displays.
 

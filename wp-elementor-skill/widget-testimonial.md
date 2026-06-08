@@ -1,7 +1,7 @@
 # Widget Boilerplate — Testimonial
 
 > **When to use this file:** Load whenever building a widget displaying a customer quote with name, job title, and image.
-> Verified against `elementor/includes/widgets/testimonial.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/testimonial.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 
@@ -205,8 +205,15 @@ protected function render(): void {
                 </div>
             <?php endif; ?>
             <div class="myplugin-testimonial-details">
-                <?php if ( ! empty( $settings['testimonial_name'] ) ) : ?>
-                    <div class="myplugin-testimonial-name"><?php echo esc_html( $settings['testimonial_name'] ); ?></div>
+                <?php if ( ! empty( $settings['testimonial_name'] ) ) :
+                    // ✅ Wire up the Link control — wrap the name in an <a> when a URL is set.
+                    $name = esc_html( $settings['testimonial_name'] );
+                    if ( ! empty( $settings['link']['url'] ) ) {
+                        $this->add_link_attributes( 'name_link', $settings['link'] );
+                        $name = '<a ' . $this->get_render_attribute_string( 'name_link' ) . '>' . $name . '</a>';
+                    }
+                    ?>
+                    <div class="myplugin-testimonial-name"><?php echo wp_kses_post( $name ); ?></div>
                 <?php endif; ?>
                 <?php if ( ! empty( $settings['testimonial_job'] ) ) : ?>
                     <div class="myplugin-testimonial-job"><?php echo esc_html( $settings['testimonial_job'] ); ?></div>
@@ -248,8 +255,12 @@ protected function content_template(): void {
             <div class="myplugin-testimonial-image"><img src="{{ image_url }}" alt=""></div>
             <# } #>
             <div class="myplugin-testimonial-details">
-                <# if ( settings.testimonial_name ) { #>
-                    <div class="myplugin-testimonial-name">{{{ settings.testimonial_name }}}</div>
+                <# if ( settings.testimonial_name ) {
+                    var nameHtml = settings.link && settings.link.url
+                        ? '<a href="' + settings.link.url + '">' + settings.testimonial_name + '</a>'
+                        : settings.testimonial_name;
+                #>
+                    <div class="myplugin-testimonial-name">{{{ nameHtml }}}</div>
                 <# } #>
                 <# if ( settings.testimonial_job ) { #>
                     <div class="myplugin-testimonial-job">{{{ settings.testimonial_job }}}</div>

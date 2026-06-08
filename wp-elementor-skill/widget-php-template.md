@@ -1,13 +1,19 @@
 # Widget Pattern — Render a PHP Template File
 
-> **When to use this file:** Load whenever building a widget whose markup lives in
-> a separate PHP template file rather than inline in `render()`. Use this pattern
-> when your widget's HTML is complex, needs to be overridable by child themes, or
-> must be reused outside Elementor (e.g. shortcodes, REST responses).
+> **When to use this file:** Load whenever building a widget whose markup lives in a
+> separate `.php` template file rather than being written inline in `render()`.
+> Common use cases: complex card layouts, CPT single views, reusable partials,
+> WooCommerce-style overrideable templates, or any widget needing theme/child-theme
+> template overrides.
 >
-> **Default choice:** If the inner layout needs to be visually designed by the user
-> in Elementor, use `widget-elementor-template.md` instead. This file is for
-> code-defined PHP markup only.
+> **Default choice:** If the inner layout should be **visually designed by the user** in
+> Elementor, use `widget-elementor-template.md` instead. This file is for code-defined PHP
+> markup only.
+>
+> **APIs used:**
+> - `load_template()` — WP core, `developer.wordpress.org/reference/functions/load_template/`
+> - `locate_template()` — WP core, `developer.wordpress.org/reference/functions/locate_template/`
+> - `get_template_part()` — WP core, `developer.wordpress.org/reference/functions/get_template_part/`
 
 ---
 
@@ -31,116 +37,115 @@ my-plugin/
 ├── includes/
 │   └── class-myplugin-widget.php
 └── templates/
-    └── widget-myplugin.php       ← the PHP template file
+    └── widget-mywidget.php       ← the PHP template file
 ```
 
 ---
 
-## Template resolution — overridable by child themes
+## Three resolution strategies
 
-```php
-/**
- * Locate the widget template file.
- *
- * Resolution order (first found wins):
- *   1. Child theme:   {child-theme}/myplugin/widget-myplugin.php
- *   2. Parent theme:  {parent-theme}/myplugin/widget-myplugin.php
- *   3. Plugin:        {plugin}/templates/widget-myplugin.php
- *
- * This mirrors the WooCommerce template override convention.
- * Source: developer.wordpress.org/reference/functions/locate_template/
- *
- * @param string $template_name Filename relative to the plugin templates/ directory.
- * @return string Absolute path to the resolved template file.
- */
-private function locate_template( string $template_name ): string {
-    // ✅ locate_template() searches child theme first, then parent theme.
-    // Pass $load = false to get the path only — we include it ourselves.
-    $theme_file = locate_template( [
-        'myplugin/' . $template_name,
-    ] );
+Choose the strategy that fits your plugin's architecture:
 
-    if ( $theme_file ) {
-        return $theme_file;
-    }
-
-    // Fallback to the plugin's own templates/ directory
-    return plugin_dir_path( MYPLUGIN_FILE ) . 'templates/' . $template_name;
-}
-```
+| Strategy | Template lookup order | Override support | Use when |
+|---|---|---|---|
+| **A — Plugin-only** | `plugin/templates/` only | ❌ No theme override | Templates are internal/non-public |
+| **B — Theme-overrideable** | Child theme → Parent theme → Plugin fallback | ✅ Full override | Distributing a public plugin |
+| **C — `get_template_part()`** | Active theme directory only | ✅ Theme-only | Widget lives inside a theme, not a plugin |
 
 ---
 
-## register_controls() skeleton
+## Strategy A — Plugin-only template file
 
 ```php
-protected function register_controls(): void {
-
-    // ── CONTENT ───────────────────────────────────────────────────────────────
-    $this->start_controls_section( 'section_content', [
-        'label' => esc_html__( 'Content', 'myplugin' ),
-        'tab'   => \Elementor\Controls_Manager::TAB_CONTENT,
-    ] );
-
-    $this->add_control( 'title', [
-        'label'       => esc_html__( 'Title', 'myplugin' ),
-        'type'        => \Elementor\Controls_Manager::TEXT,
-        'default'     => esc_html__( 'My Widget', 'myplugin' ),
-        'label_block' => true,
-        'dynamic'     => [ 'active' => true ],
-    ] );
-
-    $this->add_control( 'description', [
-        'label'   => esc_html__( 'Description', 'myplugin' ),
-        'type'    => \Elementor\Controls_Manager::TEXTAREA,
-        'dynamic' => [ 'active' => true ],
-    ] );
-
-    $this->end_controls_section();
-}
-```
-
----
-
-## has_widget_inner_wrapper() + is_dynamic_content() + render() skeleton
-
-```php
-public function has_widget_inner_wrapper(): bool {
-    return false;
-}
-
-// ✅ Return false if the template output is the same for all users (enables caching).
-// Return true if the template contains is_user_logged_in(), get_current_user_id(),
-// or other per-user/per-request logic.
-// Source: developers.elementor.com/docs/widgets/widget-output-caching/
-protected function is_dynamic_content(): bool {
-    return false;
-}
-
 protected function render(): void {
     $settings = $this->get_settings_for_display();
 
-    // ✅ Resolve the template path — child theme overrides plugin default.
-    $template = $this->locate_template( 'widget-myplugin.php' );
+    $template = plugin_dir_path( __FILE__ ) . 'templates/widget-mywidget.php';
 
+    // ✅ Verify the file exists before including — avoids fatal errors.
     if ( ! file_exists( $template ) ) {
-        if ( \Elementor\Plugin::$instance->editor
-             && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-            echo '<div style="padding:1rem;background:#f8d7da;color:#721c24;">'
-                 . esc_html__( 'Template file not found: ', 'myplugin' )
-                 . esc_html( basename( $template ) )
-                 . '</div>';
-        }
         return;
     }
 
-    // ✅ Pass settings via $args to load_template() — avoids extract() and uses
-    // the official WP API which sets up all globals ($post, $wp_query, $id, etc.)
-    // inside the included file. Never use bare include/require — they skip WP global setup.
+    // ✅ Pass $settings to the template via $args.
+    // Do NOT use extract($settings) — pollutes scope with untrusted keys.
+    // The template accesses data as $args['settings']['key'].
+    $args = [
+        'settings' => $settings,
+        'widget'   => $this,
+    ];
+
+    // ✅ load_template() sets up WP globals ($wp_query, $post, etc.)
+    // inside the included file — same environment as standard WP templates.
     // Source: developer.wordpress.org/reference/functions/load_template/
     //
-    // Second param $load_once = false — each widget instance needs its own render pass.
-    // $args is available inside the template as $args['settings'], $args['widget'].
+    // Second param $load_once = false — allows the same partial to be included
+    // multiple times (e.g. inside a repeater loop). Use true for singletons.
+    load_template( $template, false, $args );
+}
+```
+
+**Template file** (`plugin/templates/widget-mywidget.php`):
+
+```php
+<?php
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Available variables (passed via load_template $args):
+ *
+ * @var array  $args['settings']  All widget settings from get_settings_for_display().
+ * @var object $args['widget']    The widget instance (\Elementor\Widget_Base).
+ *
+ * Override: copy to {theme}/myplugin/widget-mywidget.php
+ */
+$settings = $args['settings'] ?? [];
+$widget   = $args['widget']   ?? null;
+
+if ( empty( $settings['title'] ) ) {
+    return;
+}
+?>
+<div class="myplugin-widget">
+    <h2 class="myplugin-widget__title"><?php echo esc_html( $settings['title'] ); ?></h2>
+    <?php if ( ! empty( $settings['description'] ) ) : ?>
+        <div class="myplugin-widget__desc"><?php echo wp_kses_post( $settings['description'] ); ?></div>
+    <?php endif; ?>
+</div>
+```
+
+> ⚠️ **Escaping in template files:**
+> Always escape at the point of output inside the template file.
+> `get_settings_for_display()` does **NOT** auto-escape TEXT or TEXTAREA values.
+> Use `esc_html()` for plain text, `wp_kses_post()` for rich text that may contain
+> links or formatting, and `esc_url()` for URLs.
+
+---
+
+## Strategy B — Theme-overrideable template (plugin with public API)
+
+This pattern lets child/parent themes override the widget's template by placing a file
+at the same relative path inside their theme directory. Used by WooCommerce, Easy
+Digital Downloads, and similar plugins.
+
+```php
+protected function render(): void {
+    $settings = $this->get_settings_for_display();
+
+    // ✅ locate_template() searches:
+    //   1. Child theme directory
+    //   2. Parent theme directory
+    //   3. Returns '' if not found in either
+    // Source: developer.wordpress.org/reference/functions/locate_template/
+    $theme_template = locate_template( 'myplugin/widget-mywidget.php' );
+
+    // Theme override wins; otherwise fall back to the plugin's bundled template.
+    $template = $theme_template ?: plugin_dir_path( __FILE__ ) . 'templates/widget-mywidget.php';
+
+    if ( ! file_exists( $template ) ) {
+        return;
+    }
+
     load_template( $template, false, [
         'settings' => $settings,
         'widget'   => $this,
@@ -148,105 +153,213 @@ protected function render(): void {
 }
 ```
 
+**Applying a filter for full extensibility:**
+
+```php
+protected function render(): void {
+    $settings = $this->get_settings_for_display();
+
+    $default_template = plugin_dir_path( __FILE__ ) . 'templates/widget-mywidget.php';
+
+    // ✅ Allow plugins/themes to completely replace the template path via filter.
+    $template = apply_filters(
+        'myplugin_widget_mywidget_template',
+        locate_template( 'myplugin/widget-mywidget.php' ) ?: $default_template,
+        $settings
+    );
+
+    if ( ! file_exists( $template ) ) {
+        return;
+    }
+
+    load_template( $template, false, [ 'settings' => $settings, 'widget' => $this ] );
+}
+```
+
 ---
 
-## PHP template file skeleton (`templates/widget-myplugin.php`)
+## Strategy C — `get_template_part()` (theme-resident widget)
+
+Use this only when the widget lives inside a **theme** (not a plugin). `get_template_part()`
+only searches the active theme and its parent — it has no plugin fallback.
+
+```php
+protected function render(): void {
+    $settings = $this->get_settings_for_display();
+
+    // ✅ WP 5.5+ $args parameter passes variables to the template.
+    // Inside the template, variables are available as $args['key'].
+    // Source: developer.wordpress.org/reference/functions/get_template_part/
+    get_template_part(
+        'template-parts/widgets/mywidget',  // slug: looks for template-parts/widgets/mywidget.php
+        null,                               // name: if set, also looks for mywidget-{name}.php
+        [
+            'settings' => $settings,
+            'widget'   => $this,
+        ]
+    );
+}
+```
+
+**Template file** (`theme/template-parts/widgets/mywidget.php`):
 
 ```php
 <?php
-/**
- * Widget template: My Plugin Widget
- *
- * Available variables (passed via load_template $args):
- *   $args['settings'] (array)  — widget settings from get_settings_for_display()
- *   $args['widget']   (object) — the Widget_Base instance
- *
- * Override: copy to {theme}/myplugin/widget-myplugin.php
- */
-
 defined( 'ABSPATH' ) || exit;
 
-// ✅ Access via $args — load_template() does NOT extract $args into variables.
 $settings = $args['settings'] ?? [];
-
-$title       = $settings['title'] ?? '';
-$description = $settings['description'] ?? '';
-
-if ( empty( $title ) && empty( $description ) ) {
-    return;
-}
+$widget   = $args['widget']   ?? null;
 ?>
 <div class="myplugin-widget">
-    <?php if ( $title ) : ?>
-        <h3 class="myplugin-widget__title">
-            <?php echo wp_kses_post( $title ); ?>
-        </h3>
-    <?php endif; ?>
-
-    <?php if ( $description ) : ?>
-        <div class="myplugin-widget__description">
-            <?php echo wp_kses_post( $description ); ?>
-        </div>
-    <?php endif; ?>
+    <h2><?php echo esc_html( $settings['title'] ?? '' ); ?></h2>
 </div>
 ```
 
-> ⚠️ **Escaping in template files:**
-> Always escape at the point of output inside the template file.
-> `get_settings_for_display()` does NOT auto-escape TEXT or TEXTAREA values.
-> Use `esc_html()` for plain text, `wp_kses_post()` for rich text that may
-> contain links or formatting, `esc_url()` for URLs.
+---
+
+## Required widget methods
+
+```php
+public function has_widget_inner_wrapper(): bool {
+    return false;
+}
+
+// ✅ Return false if the template file renders static content identical
+// for all users — enables Elementor output caching.
+// Return true if the template uses get_the_ID(), is_user_logged_in(),
+// current_user_can(), or any per-user/per-session logic.
+// Source: developers.elementor.com/docs/widgets/widget-output-caching/
+protected function is_dynamic_content(): bool {
+    return false; // change to true if template uses dynamic/user-specific data
+}
+```
 
 ---
 
 ## content_template() skeleton
 
+PHP template files cannot run in the JS `content_template()`. Use a representative
+placeholder that mirrors the visual structure so the editor preview matches the frontend:
+
 ```php
 protected function content_template(): void {
     ?>
     <#
-    var title       = settings.title       || '';
-    var description = settings.description || '';
-    if ( ! title && ! description ) { return; }
+    if ( ! settings.title ) { return; }
     #>
     <div class="myplugin-widget">
-        <# if ( title ) { #>
-            <h3 class="myplugin-widget__title">{{{ title }}}</h3>
-        <# } #>
-        <# if ( description ) { #>
-            <div class="myplugin-widget__description">{{{ description }}}</div>
+        <h2 class="myplugin-widget__title">{{{ settings.title }}}</h2>
+        <# if ( settings.description ) { #>
+            <div class="myplugin-widget__desc">{{{ settings.description }}}</div>
         <# } #>
     </div>
     <?php
 }
 ```
 
-> ✅ `content_template()` mirrors the PHP template's structure exactly so the
-> editor preview matches the frontend output. Keep both in sync whenever the
-> template markup changes.
+> **Note:** If the PHP template contains complex logic that cannot be replicated in JS, it is
+> acceptable for `content_template()` to output a simplified preview. Elementor's own Post
+> Content widget uses this approach. `{{{ }}}` (not `{{ }}`) renders TEXT values without
+> double-encoding apostrophes.
+
+---
+
+## Outputting the rendered template as a string (for hooks/filters)
+
+When you need the template output as a string rather than echoing it directly —
+for example to pass it to a filter or cache it:
+
+```php
+private function get_template_html( array $settings ): string {
+    ob_start();
+
+    $template = plugin_dir_path( __FILE__ ) . 'templates/widget-mywidget.php';
+
+    if ( file_exists( $template ) ) {
+        load_template( $template, false, [ 'settings' => $settings, 'widget' => $this ] );
+    }
+
+    return ob_get_clean() ?: '';
+}
+
+protected function render(): void {
+    $settings = $this->get_settings_for_display();
+    $html     = $this->get_template_html( $settings );
+
+    if ( empty( $html ) ) {
+        return;
+    }
+
+    // ✅ The HTML is generated by our own template (already escaped at output) —
+    // mark with phpcs ignore so the sniffer does not flag the echo.
+    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    echo $html;
+}
+```
+
+---
+
+## Critical gotchas
+
+**1. Never use `include` or `require` directly**
+`load_template()` sets up all WordPress globals (`$post`, `$wp_query`, `$id`, etc.)
+inside the included file, exactly as WordPress does for standard templates. A bare
+`include` skips this setup, causing WP template tags to fail or return wrong data.
+
+**2. `$args` key — not extracted**
+`load_template()` does NOT extract `$args` into variables. Inside the template,
+all passed values live in `$args['key']`, not `$key` directly. Document this
+in every template file header.
+
+**3. `$load_once = false` for repeated partials**
+If the same template is used in a loop (e.g. a posts grid widget rendering each card),
+pass `false` as the second parameter to `load_template()`. The default `true` uses
+`require_once`, so only the first card would render.
+
+**4. Path traversal — never pass user input as a template name**
+`locate_template()` does not sanitise template names. Never interpolate control values
+directly into template paths. Use a fixed allowlist map instead:
+
+```php
+// ❌ NEVER do this — path traversal attack vector
+$template = locate_template( $settings['template_name'] . '.php' );
+
+// ✅ Use a fixed allowlist map
+$allowed = [
+    'style-a' => 'myplugin/widget-mywidget-a.php',
+    'style-b' => 'myplugin/widget-mywidget-b.php',
+];
+$tpl_slug = $allowed[ $settings['template_style'] ] ?? $allowed['style-a'];
+$template = locate_template( $tpl_slug ) ?: plugin_dir_path( __FILE__ ) . 'templates/' . basename( $tpl_slug );
+```
+
+**5. Child theme wins over parent theme**
+`locate_template()` checks the child theme first. If a child-theme user adds
+`myplugin/widget-mywidget.php` to their theme, it takes precedence over both the parent
+theme and the plugin fallback.
 
 ---
 
 ## Making templates overridable — developer documentation comment
 
-Add a comment to the top of your plugin's main file so third-party developers
-know where to place overrides:
+Add a comment to the top of your plugin's main file so third-party developers know
+where to place overrides:
 
 ```php
 /**
  * Template override:
  * To override widget templates, copy the file from:
- *   my-plugin/templates/widget-myplugin.php
+ *   my-plugin/templates/widget-mywidget.php
  * to:
- *   {your-theme}/myplugin/widget-myplugin.php
- * Child theme overrides take precedence over parent theme overrides.
+ *   {your-theme}/myplugin/widget-mywidget.php
+ * Child-theme overrides take precedence over parent-theme overrides.
  */
 ```
 
 ---
 
 > **Remove checklist:**
-> - `locate_template()` helper → remove if template is not overridable by themes
-> - `extract()` call → replace with explicit variable passing if preferred
-> - `description` control → remove if widget has only one content field
-> - Override documentation comment → update with your actual plugin/template paths
+> - Strategy B filter (`myplugin_widget_mywidget_template`) → remove for internal plugins.
+> - `ob_start()` wrapper → only needed when returning HTML as a string.
+> - `$args['widget']` → remove if the template does not need widget methods.
+> - `description` control → remove if the widget has only one content field.

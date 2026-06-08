@@ -8,8 +8,9 @@ of `wp_posts`/`wp_postmeta`. It is **enabled by default for all new stores since
 orders MUST declare HPOS compatibility or WooCommerce will block the feature with admin
 warnings.
 
-> ⚠️ **WooCommerce 10.7 (scheduled April 14, 2026 — confirm release status before relying on this) — HPOS "Sync on Read" disabled by default:**
-> Starting in WooCommerce 10.7, the HPOS **"sync on read"** mechanism is disabled by default.
+> ⚠️ **WooCommerce 10.7 (released April 14, 2026) — HPOS "Sync on Read" disabled by default:**
+> As of WooCommerce 10.7, the HPOS **"sync on read"** mechanism is disabled by default
+> (current stable is **10.8**, released May 26, 2026).
 > **What this means:** "Sync on read" was a safety net that detected when order data was written
 > directly to the legacy `wp_posts`/`wp_postmeta` tables (bypassing WooCommerce's API) and
 > pulled those changes back into HPOS on the next read. With this disabled, any plugin or custom
@@ -18,10 +19,10 @@ warnings.
 >
 > **Action required:** Audit all code that touches order data. Migrate to HPOS-native API.
 > ```php
-> // Test the new 10.7 default (sync-on-read disabled) before upgrading:
+> // Reproduce the 10.7+ default (sync-on-read disabled) on an older WooCommerce to test:
 > add_filter( 'woocommerce_hpos_enable_sync_on_read', '__return_false' );
 >
-> // Re-enable sync-on-read after upgrading to 10.7 (temporary bridge only):
+> // Temporarily re-enable sync-on-read on 10.7+ (bridge only, while you migrate):
 > add_filter( 'woocommerce_hpos_enable_sync_on_read', '__return_true' );
 > ```
 > Re-enabling should be treated as a temporary measure only — sync-on-read may be fully

@@ -1,7 +1,7 @@
 # Widget Boilerplate — Google Maps
 
 > **When to use this file:** Load whenever building a widget that embeds a Google Maps iframe.
-> Verified against `elementor/includes/widgets/google-maps.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/google-maps.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 
@@ -85,7 +85,7 @@ protected function render(): void {
     //   https://maps.google.com/maps?q={address}&t=m&z={zoom}&output=embed&iwloc=near
     //   This is the same fallback Elementor's native widget uses when no API key is set.
     //   It is NOT deprecated for no-key usage — Google still serves it and Elementor relies
-    //   on it. Source: elementor/includes/widgets/google-maps.php (Elementor 3.35+)
+    //   on it. Source: elementor/includes/widgets/google-maps.php (Elementor 3.35+ / V3 Widget_Base API, current through 4.2)
     //
     // PATTERN B (with API key) — official Maps Embed API, recommended by Google:
     //   https://www.google.com/maps/embed/v1/place?key={API_KEY}&q={address}&zoom={zoom}

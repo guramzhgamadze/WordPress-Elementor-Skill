@@ -1,7 +1,7 @@
 # Widget Boilerplate — Icon List
 
 > **When to use this file:** Load whenever building a bullet-list widget where each item has an icon, text, and optional link.
-> Verified against `elementor/includes/widgets/icon-list.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/icon-list.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 
@@ -183,7 +183,10 @@ protected function render(): void {
         <?php foreach ( $settings['icon_list'] as $index => $item ) :
             $repeater_key = $this->get_repeater_setting_key( 'text', 'icon_list', $index );
             $this->add_render_attribute( $repeater_key, 'class', 'myplugin-icon-list-text' );
-            // ✅ add_inline_editing_attributes() is deprecated since Elementor 3.x — do not use.
+            // ℹ️ For live in-panel text editing, you MAY also call
+            // $this->add_inline_editing_attributes( $repeater_key, 'none' ) here. It is a current,
+            // supported Elementor API (see SKILL.md §5) — not deprecated. Omitted by default to
+            // keep the repeater output minimal.
 
             $tag = ! empty( $item['link']['url'] ) ? 'a' : 'span';
             if ( 'a' === $tag ) {

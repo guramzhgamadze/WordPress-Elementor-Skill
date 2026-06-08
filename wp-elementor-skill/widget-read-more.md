@@ -1,7 +1,7 @@
 # Widget Boilerplate — Read More
 
 > **When to use this file:** Load whenever building a widget that inserts WordPress's `<!--more-->` tag for archive excerpts.
-> Verified against `elementor/includes/widgets/read-more.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/read-more.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 > This widget has **no controls** — it only renders the WordPress `more` tag.
 
 ---

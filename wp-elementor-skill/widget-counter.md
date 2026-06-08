@@ -1,7 +1,7 @@
 # Widget Boilerplate — Counter
 
 > **When to use this file:** Load whenever building a widget that animates a number counting up.
-> Verified against `elementor/includes/widgets/counter.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/counter.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

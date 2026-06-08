@@ -1,7 +1,7 @@
 # Widget Boilerplate — Progress Bar
 
 > **When to use this file:** Load whenever building a widget showing a percentage-based progress bar.
-> Verified against `elementor/includes/widgets/progress.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/progress.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

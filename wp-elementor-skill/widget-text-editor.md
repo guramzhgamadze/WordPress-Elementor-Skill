@@ -1,7 +1,7 @@
 # Widget Boilerplate — Text Editor
 
 > **When to use this file:** Load whenever building a widget with a rich text / WYSIWYG body content area.
-> Verified against `elementor/includes/widgets/text-editor.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/text-editor.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

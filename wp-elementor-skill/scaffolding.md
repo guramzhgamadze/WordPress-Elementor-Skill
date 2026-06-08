@@ -52,8 +52,8 @@ Use when logic is reusable, complex, or must survive theme changes.
 // ↑ "Requires Plugins" is the WP 6.5+ native plugin dependency declaration.
 // WordPress.org plugin slugs only — do NOT add inline comments on that line;
 // get_file_data() reads everything after the colon as the value, including comments.
-// NOTE: WordPress 7.0 (April 2026) raises the minimum PHP to 7.4. Update "Requires PHP"
-// to at least 7.4 in your plugin header once you target WP 7.0+ sites exclusively.
+// NOTE: WordPress 7.0 (released May 2026) raised the minimum PHP to 7.4. Set "Requires PHP"
+// to at least 7.4 once you target WP 7.0+ sites exclusively (8.3 remains the recommended baseline).
 
 defined( 'ABSPATH' ) || exit;
 

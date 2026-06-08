@@ -1,7 +1,7 @@
 # Widget Boilerplate — Icon
 
 > **When to use this file:** Load whenever building a widget that displays a single standalone icon.
-> Verified against `elementor/includes/widgets/icon.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/icon.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

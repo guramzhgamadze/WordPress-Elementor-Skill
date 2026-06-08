@@ -1,7 +1,7 @@
 # Widget Boilerplate — Shortcode
 
 > **When to use this file:** Load whenever building a widget that outputs a WordPress shortcode.
-> Verified against `elementor/includes/widgets/shortcode.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/shortcode.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

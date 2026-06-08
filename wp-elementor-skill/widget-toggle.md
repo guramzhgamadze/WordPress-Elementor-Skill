@@ -1,7 +1,7 @@
 # Widget Boilerplate — Toggle
 
 > **When to use this file:** Load whenever building a collapsible content widget where multiple panels can be open simultaneously.
-> Verified against `elementor/includes/widgets/toggle.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/toggle.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 > ⚠️ Toggle is structurally identical to Accordion — the only differences are noted below.
 
 ---
@@ -218,7 +218,12 @@ protected function render(): void {
                 aria-controls="<?php echo esc_attr( $content_id ); ?>"
                 role="button"
                 tabindex="0">
-                <?php if ( ! empty( $tab['selected_icon']['value'] ) ) : ?>
+                <?php
+                // ✅ BUG FIX: selected_icon / selected_active_icon are WIDGET-LEVEL controls
+                // (added via $this->add_control), not per-item repeater controls. Check
+                // $settings, not $tab — $tab['selected_icon'] is always empty, which would
+                // make the icon never render. (Same fix as widget-accordion.md.)
+                if ( ! empty( $settings['selected_icon']['value'] ) ) : ?>
                     <span class="myplugin-toggle-icon">
                         <span class="myplugin-toggle-icon-opened">
                             <?php \Elementor\Icons_Manager::render_icon( $settings['selected_active_icon'], [ 'aria-hidden' => 'true' ] ); ?>
@@ -251,8 +256,9 @@ protected function content_template(): void {
     #>
     <div class="myplugin-toggle">
         <# _.each( settings.tabs, function( tab, index ) {
-            var iconHTML = tab.selected_icon && tab.selected_icon.value
-                ? elementor.helpers.renderIcon( view, tab.selected_icon, { 'aria-hidden': true }, 'i', 'object' )
+            // ✅ BUG FIX: selected_icon is a WIDGET-LEVEL control — read settings.*, not tab.*.
+            var iconHTML = settings.selected_icon && settings.selected_icon.value
+                ? elementor.helpers.renderIcon( view, settings.selected_icon, { 'aria-hidden': true }, 'i', 'object' )
                 : null;
         #>
         <# var contentId = 'myplugin-toggle-content-' + index; #>

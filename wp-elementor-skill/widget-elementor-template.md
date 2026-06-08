@@ -228,8 +228,25 @@ protected function content_template(): void {
 > **Dynamic content in nested templates:**
 > If the selected template contains Dynamic Tags (Post Title, ACF fields, etc.),
 > `get_builder_content_for_display()` renders them in the context of the current
-> page's `$post` — not the template post itself. This is expected behaviour.
-> Source: github.com/elementor/elementor/issues/31600
+> page's `$post` — it does **not** switch the global `$post` to the template post.
+> This is expected behaviour.
+> Source: github.com/elementor/elementor/issues/31600 · github.com/elementor/elementor/issues/13751
+
+If you need the template's Dynamic Tags to read a **specific** post (e.g. a CPT entry whose
+ID differs from the current page), set up that post context explicitly before the call:
+
+```php
+// Make Dynamic Tags inside the template resolve against $target_id, not the current page.
+global $post;
+$original = $post;
+$post = get_post( $target_id );   // the post whose meta the template should read
+setup_postdata( $post );
+
+echo \Elementor\Plugin::$instance->frontend->get_builder_content_for_display( $template_id, true );
+
+wp_reset_postdata();
+$post = $original;   // belt-and-braces restore
+```
 
 > **Recursive template guard:**
 > Never allow a template to embed itself. The `$template_id === get_the_ID()` guard

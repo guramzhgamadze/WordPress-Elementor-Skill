@@ -4,14 +4,14 @@
 > primary clickable call-to-action — a button, submit trigger, or any linked element with
 > text and optional icon.
 >
-> Verified against `elementor/includes/widgets/traits/button-trait.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/traits/button-trait.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 > Control IDs, defaults, selectors, and order match Elementor's native Button widget exactly.
 
 ---
 
 ### Button Widget Boilerplate
 
-Verified against `elementor/includes/widgets/traits/button-trait.php` (Elementor 3.35+).
+Verified against `elementor/includes/widgets/traits/button-trait.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ```php
 protected function register_controls(): void {

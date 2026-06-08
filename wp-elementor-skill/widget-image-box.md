@@ -1,7 +1,7 @@
 # Widget Boilerplate — Image Box
 
 > **When to use this file:** Load whenever building a widget combining an image with a title and description.
-> Verified against `elementor/includes/widgets/image-box.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/image-box.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 

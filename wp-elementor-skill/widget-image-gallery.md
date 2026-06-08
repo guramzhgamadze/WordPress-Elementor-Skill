@@ -1,7 +1,7 @@
 # Widget Boilerplate — Image Gallery
 
 > **When to use this file:** Load whenever building a widget that displays a grid of images.
-> Verified against `elementor/includes/widgets/image-gallery.php` (Elementor 3.35+).
+> Verified against `elementor/includes/widgets/image-gallery.php` (Elementor 3.35+ / V3 Widget_Base API, current through 4.2).
 
 ---
 
