@@ -31,18 +31,21 @@ The documentation is split into focused, single-topic files. `SKILL.md` is the r
 | [`rest-api.md`](./wp-elementor-skill/rest-api.md) | **Custom REST Endpoints.** `register_rest_route`, JSON Schema draft-04, `rest_validate_request_arg`, `WP_Error` permission callbacks, REST nonce pattern + refresh, global post context setup. |
 | [`offcanvas-ui.md`](./wp-elementor-skill/offcanvas-ui.md) | **Accessible Off-Canvas UI.** Full PHP/CSS/JS pattern — `inert` attribute set in HTML markup, CSS class toggle, `myplugin-offcanvas__backdrop--hidden` in HTML, ARIA `dialog` + `aria-modal`, focus trap, iOS Safari scroll lock, `prefers-reduced-motion` support. |
 | [`performance.md`](./wp-elementor-skill/performance.md) | **Performance & Accessibility Checklists.** Frontend (LCP, lazy loading, WP 6.7+ auto-sizes, WP 6.9+ IE conditional comments, WP 6.8+ Speculative Loading), backend (WP_Query optimizations, WP 6.9+ salted cache keys, WP 7.0 RTC query scoping), WCAG 2.2 AA. |
+| [`field-notes.md`](./wp-elementor-skill/field-notes.md) | **Hard-won production gotchas** distilled from shipping real plugins. Widget-lifecycle fatals (untyped overrides, `render()` re-runs, sticky `get_name()`), `content_template()` escaping & the wp.org editor-XSS rejection, CSS-in-Elementor footguns (custom-prop cascade, flex `min-width`, body-mounted UI), `wp_mail` inline-styles, `$_COOKIE` vs `$_REQUEST`, secrets at rest, embedding standalone apps inline, and wp.org review/packaging. |
+| [`wp-org-guidelines.md`](./wp-elementor-skill/wp-org-guidelines.md) | **wordpress.org submission reference.** The 18 official Detailed Plugin Guidelines (paraphrased, actionable), Plugin Check 2.0.0 check-categories + how to run it (admin UI / WP-CLI, static vs runtime, auto-scan on updates), the AI-assisted-but-human-decided review process, and required headers/`readme.txt` fields. Sourced from the official guidelines, the Plugin Check page, and the review-team blog. |
 
 ---
 
 ## Core Philosophy
 
-Five principles that override everything else:
+Six principles that override everything else:
 
 1. **Native APIs first** — WordPress core hook before plugin logic; Elementor API before template override. Don't reinvent the wheel.
 2. **Sanitize in, escape out** — Every input sanitized on receipt. Every output escaped at the point of rendering. No exceptions, ever.
 3. **Prefix everything** — All functions, classes, constants, hooks, and CSS classes get a project-specific prefix. The WordPress ecosystem is crowded.
 4. **State your placement** — Every code response declares exactly which file it belongs in and why. Plan before you code.
 5. **Never hardcode visual settings in widgets** — Every visual property (colors, fonts, sizes, spacing, backgrounds, borders, shadows) must be an Elementor control. See `SKILL.md §5`.
+6. **Name for the directory from day one** — Slug must not start with a trademark you don't own (`"X for WooCommerce"`, not `"WooCommerce X"`); text domain equals the slug; the wp.org slug and a widget's `get_name()` are permanent. Decide the public name, slug, text domain, and code prefix together, once. See `wp-org-guidelines.md`.
 
 ---
 

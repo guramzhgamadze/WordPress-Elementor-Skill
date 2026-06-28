@@ -25,17 +25,25 @@
     target?.classList.toggle( 'myplugin__panel--hidden', isOpen );
   };
 
-  // ✅ ONLY correct pattern per official Elementor Developer docs:
-  // Wait for 'elementor/frontend/init' before registering addAction.
+  // ✅ Wait for 'elementor/frontend/init' before registering addAction.
   // DO NOT use if(window.elementorFrontend) — if elementorFrontend already
   // exists, all element_ready events have already fired and addAction silently
   // misses every widget already on the page.
   //
-  // ⚠️ CRITICAL — this script must NOT use strategy:'defer' if it relies on this event.
-  // 'elementor/frontend/init' is a CustomEvent fired synchronously during footer execution.
-  // A deferred script may execute AFTER this event fires, causing a silent miss.
-  // Use in_footer:true WITHOUT defer, and declare 'elementor-frontend' as a dependency.
-  window.addEventListener( 'elementor/frontend/init', () => {
+  // ⚠️ BIND WITH jQUERY — this is the bulletproof, version-agnostic pattern Elementor's own
+  // docs lead with. Elementor fires 'elementor/frontend/init' through jQuery's event system
+  // ( jQuery(window).trigger(...) ). jQuery-triggered CUSTOM events do NOT reach native
+  // addEventListener handlers, so on Elementor < 3.5 a window.addEventListener listener
+  // SILENTLY NEVER FIRES — handlers on AJAX-loaded widgets (popups, loop items, editor
+  // re-renders) just die with no error. Elementor 3.5+ added dual-dispatch (jQuery + native),
+  // so addEventListener also works on modern versions — but jQuery is the safe default and
+  // costs nothing extra (jQuery is already a dependency of elementor-frontend).
+  // Source: developers.elementor.com/native-js-events-in-elementor/
+  //
+  // ⚠️ This script must NOT use strategy:'defer' if it relies on this event — a deferred
+  // script may execute AFTER init fires (silent miss). Use in_footer:true WITHOUT defer, and
+  // declare 'elementor-frontend' (and 'jquery') as dependencies.
+  jQuery( window ).on( 'elementor/frontend/init', () => {
     window.elementorFrontend.hooks.addAction(
       'frontend/element_ready/myplugin-widget.default',
       ( $scope ) => {

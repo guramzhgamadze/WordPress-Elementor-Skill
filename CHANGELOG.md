@@ -25,6 +25,54 @@ place instead of being scattered across the sub-files.
 
 ## Audit rounds
 
+### Round 24 — June 8, 2026 — official wordpress.org submission reference
+- Analyzed three canonical sources — the **Detailed Plugin Guidelines**, the **Plugin Check**
+  plugin page, and the **make.wordpress.org/plugins** review-team blog — and distilled them into a
+  new **`wp-org-guidelines.md`** (11th core file):
+  - The **18 Directory Guidelines** in paraphrased, actionable form (kept numbered, since
+    reviewers cite them by number) — GPL licensing, no obfuscation, no trialware, SaaS rules,
+    no phone-home without opt-in consent, no remote executable code, no required credits/dashboard
+    hijacking, ≤5 tags / no readme spam, use WP-bundled libraries, increment versions, trademark
+    slug rules, etc.
+  - **Plugin Check 2.0.0** — the six check categories (Plugin Repo Requirements, Security,
+    Performance, Accessibility, Code Standards/PHPCS, Internationalization), admin-UI + WP-CLI
+    usage, static-vs-runtime (`--require cli.php`), and the fact that it auto-scans **every update**
+    since Oct 2025.
+  - The **review process reality** — AI-assisted but human-decided, a days-to-~week queue, and the
+    finding that **author responsiveness strongly correlates with approval** (silence is the most
+    common rejection path).
+  - Required headers / `readme.txt` fields, cross-referenced to `field-notes.md` §10.
+- Wired into the router (sub-file map) and updated README + `docs/index.html` counts (10 → **11**
+  core files; 45 → **46** total). Ties into existing skill rules (bundled-library use, `Requires`
+  headers, the standing "run Plugin Check before resubmission" rule).
+- **Added Golden Rule #7 — "Name for the directory from day one"** (SKILL.md §0): slug must not
+  start with a trademark you don't own (Guideline 17), text domain must equal the slug, and the
+  wp.org slug + a widget's `get_name()` are permanent. Distinct from Rule #3 (internal code
+  prefixing) — this governs the public identity. Updated the README "principles" list (5 → 6) and
+  the docs "golden rules" count (6 → 7); existing "Golden Rule #6" references are unchanged.
+
+### Round 23 — June 8, 2026 — field notes from real plugins (+ two corrections)
+- Mined the `CLAUDE.md` mistake-logs from two shipped Elementor plugins (a frontend-auth suite
+  and an embedded exam app) and distilled the generalizable lessons into a new
+  **`field-notes.md`** (10th core file) — widget-lifecycle fatals, `content_template()` escaping,
+  CSS-in-Elementor footguns, transactional email, PHP/security gotchas, embedding standalone apps,
+  data-safety, and wp.org review/packaging.
+- **Correction 1 — `content_template()` escaping:** changed the guidance from `{{{ }}}` to
+  **`{{ }}` (escaped) for user settings**. `{{{ }}}` on a user value is an editor-context XSS that
+  wp.org review rejects; the old "avoids apostrophe corruption" rationale was a myth (the browser
+  decodes the escaped entity). `{{{ }}}` is now reserved for Elementor-generated HTML
+  (`renderIcon`, attribute strings). Updated `elementor-patterns.md`.
+- **Correction 2 — `elementor/frontend/init` binding:** now leads with the **jQuery** binding
+  (`jQuery(window).on('elementor/frontend/init', …)`). Elementor fires it through jQuery; native
+  `addEventListener` silently misses it on Elementor < 3.5 (3.5+ added dual-dispatch, so native
+  also works on modern versions — but jQuery is the version-agnostic, documented-safe default).
+  Updated `js-css-standards.md`. Source: developers.elementor.com/native-js-events-in-elementor/.
+- Wired `field-notes.md` into the router (sub-file map + "skim it for any widget/plugin/wp.org
+  work") and updated README + `docs/index.html` counts (9 → **10** core files; 44 → **45** total).
+- Note: the 35 widget boilerplates still use `{{{ settings.* }}}` for text in their
+  `content_template()` examples — a follow-up sweep to `{{ }}` is recommended for wp.org-bound use
+  (tracked, not yet applied).
+
 ### Round 22 — June 8, 2026 — widget coverage expansion
 - Checked Elementor 4.0–4.2 for newly added widgets. The new elements are all **V4 Atomic
   Elements** (Div Block, Flexbox Container, Atomic Heading/Paragraph/Image/Button/Video/SVG,

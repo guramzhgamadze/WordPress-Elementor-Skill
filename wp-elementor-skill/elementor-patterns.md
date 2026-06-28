@@ -225,15 +225,20 @@ class MyPlugin_Widget extends \Elementor\Widget_Base {
     }
 
     // ✅ REQUIRED: JS/Backbone template for live editor preview.
-    // {{{ }}} for TEXT control values — Elementor processes values via get_settings_for_display()
-    // before they reach content_template(). {{{ }}} renders the processed value without
-    // double-encoding. {{ }} would HTML-encode already-safe values, corrupting apostrophes etc.
+    // ⚠️ ESCAPING: use {{ }} (escaped) for USER SETTINGS — title, text, labels, button text.
+    //    {{{ }}} (raw) on a user-controlled value is an editor-context XSS and wp.org plugin
+    //    review REJECTS it. {{ }} escapes via _.escape(); the browser decodes the entity on
+    //    render (O'Reilly displays correctly — there is NO apostrophe corruption).
+    //    Reserve {{{ }}} for Elementor-GENERATED HTML only (e.g. {{{ iconHTML.value }}} from
+    //    elementor.helpers.renderIcon, processed media) — never raw settings, and never inside
+    //    an HTML attribute (a triple-brace breaks the attribute). See field-notes.md §2.
+    //    getRenderAttributeString() output IS safe Elementor-built markup → triple-brace is OK.
     protected function content_template(): void {
         ?>
         <div class="myplugin-widget">
             <# view.addRenderAttribute( 'title', 'class', 'myplugin-widget__title' );
                view.addInlineEditingAttributes( 'title' ); #>
-            <h2 {{{ view.getRenderAttributeString( 'title' ) }}}>{{{ settings.title }}}</h2>
+            <h2 {{{ view.getRenderAttributeString( 'title' ) }}}>{{ settings.title }}</h2>
         </div>
         <?php
     }

@@ -35,6 +35,8 @@ for the task at hand.
 | Off-canvas UI, off-canvas accessibility, focus trap | **offcanvas-ui.md** |
 | Performance checklists (frontend + backend), speculative loading, IE conditional comments | **performance.md** |
 | Accessibility checklist, WCAG 2.2 AA, ARIA patterns | **performance.md** |
+| **Hard-won production gotchas** — widget lifecycle fatals, `content_template()` escaping, CSS-in-Elementor footguns, transactional email, wp.org review/packaging, embedding apps | **field-notes.md** |
+| **wordpress.org submission** — the 18 Directory Guidelines, Plugin Check 2.0.0 categories/usage, review process, required headers/readme | **wp-org-guidelines.md** |
 
 ### Widget Boilerplates — Load when building a widget of that type
 
@@ -79,6 +81,8 @@ for the task at hand.
 **Always read the relevant sub-file before writing code.** For tasks that span multiple
 areas (e.g. a WooCommerce widget with custom REST endpoint), read all relevant sub-files.
 For a widget task, read BOTH the widget boilerplate file AND **elementor-patterns.md**.
+For **any custom widget, plugin, or wp.org-bound work, also skim `field-notes.md`** — it
+catches the lint-passing, review-failing, site-down mistakes the topic files don't dwell on.
 
 ---
 
@@ -95,6 +99,15 @@ These override everything in all sub-files:
    spacing, backgrounds, borders, shadows, alignment) MUST be exposed as a standard Elementor
    control in the editor panel. Users control appearance via the toolbar — not by editing code.
    See §5 "Mandatory Widget Controls" below for the required controls checklist.
+7. **Name for the directory from day one** — Naming is decided first and is effectively
+   irreversible, so get it right before writing code. The plugin **slug/name must NOT start with
+   a trademark you don't own** — `"CRM for WooCommerce"`, never `"WooCommerce CRM"` (Directory
+   Guideline 17). The **text domain must exactly equal the plugin slug**. The wp.org slug is
+   **permanent**, and a widget's `get_name()` is **sticky** (stored in every page's
+   `_elementor_data` — renaming it breaks placed widgets). Choose the public name, slug, text
+   domain, and code prefix (Rule #3) **together, once**. This is distinct from Rule #3: that
+   governs internal code symbols; this governs the public identity. See **wp-org-guidelines.md**
+   (Guidelines 12/16/17) and **field-notes.md** §1 (sticky `get_name()`).
 
 ---
 
