@@ -30,6 +30,7 @@ for the task at hand.
 | JavaScript standards, enqueue API, defer/async, wp_add_inline_script | **js-css-standards.md** |
 | CSS standards, BEM, design tokens, Elementor CSS selectors | **js-css-standards.md** |
 | Elementor custom widget, Dynamic Tags, Loop Grid, Form actions, Theme Builder conditions | **elementor-patterns.md** |
+| Elementor extension points — custom **form fields**, **theme locations**, injecting controls into native widgets, Finder/context-menu, hooks reference, deprecations | **elementor-extending.md** |
 | WooCommerce HPOS, order API, template overrides, Loop Grid for products | **woocommerce.md** |
 | REST API endpoints, schema, permission callbacks | **rest-api.md** |
 | Off-canvas UI, off-canvas accessibility, focus trap | **offcanvas-ui.md** |
@@ -37,6 +38,8 @@ for the task at hand.
 | Accessibility checklist, WCAG 2.2 AA, ARIA patterns | **performance.md** |
 | **Hard-won production gotchas** — widget lifecycle fatals, `content_template()` escaping, CSS-in-Elementor footguns, transactional email, wp.org review/packaging, embedding apps | **field-notes.md** |
 | **wordpress.org submission** — the 18 Directory Guidelines, Plugin Check 2.0.0 categories/usage, review process, required headers/readme | **wp-org-guidelines.md** |
+| **Debugging & static analysis** — PHPCS+WPCS, PHPStan, Plugin Check, `WP_DEBUG`/Query Monitor, Elementor Safe Mode/cache, symptom→cause table | **debugging.md** |
+| **Common WordPress APIs** — admin settings page (Settings + Options API), `register_meta`, roles/capabilities, WP-Cron, internationalization (i18n) | **wordpress-apis.md** |
 
 ### Widget Boilerplates — Load when building a widget of that type
 
@@ -253,6 +256,11 @@ activate plugin, clear Elementor cache, etc.
 | PHP sanitization / escaping | `wp_unslash()` + `sanitize_*` + `esc_*` patterns | php-standards.md |
 | Transient caching | `get_transient` / `set_transient` | php-standards.md |
 | External API call + WP_Error | `wp_remote_get()` + `WP_Error` pattern | php-standards.md |
+| Admin settings page | Settings API + `register_setting` + `sanitize_callback` + `settings_fields` | wordpress-apis.md |
+| Store plugin options | Options API + explicit boolean `autoload` (WP 6.6+) | wordpress-apis.md |
+| Custom field exposed to REST / Elementor | `register_post_meta` + `show_in_rest` | wordpress-apis.md |
+| Scheduled / background task | WP-Cron (`wp_schedule_event`) + Action Scheduler for heavy jobs | wordpress-apis.md |
+| Make a plugin translatable | i18n functions + text-domain = slug + WP 6.7 `init`-timing rule | wordpress-apis.md |
 | WP 6.8 password hashing | `wp_check_password()` + `wp_password_needs_rehash()` | php-standards.md |
 | WP 6.8 app password / key hashing | `wp_fast_hash()` + `wp_verify_fast_hash()` (BLAKE2b) | php-standards.md |
 | JS standards + enqueue defer/async | IIFE + WP 6.3+ enqueue API | js-css-standards.md |
@@ -264,6 +272,10 @@ activate plugin, clear Elementor cache, etc.
 | ACF field in Elementor | Dynamic Tag extending `\Elementor\Core\DynamicTags\Tag` | elementor-patterns.md |
 | Elementor Pro Form action | `Action_Base` + field iteration | elementor-patterns.md |
 | Theme Builder custom condition | `Condition_Base` + `elementor/theme/register_conditions` | elementor-patterns.md |
+| Elementor Pro custom form field | `Field_Base` + `elementor_pro/forms/fields/register` | elementor-extending.md |
+| Theme Builder custom location | `register_location` + `elementor_theme_do_location()` | elementor-extending.md |
+| Add a control to a NATIVE Elementor widget | `elementor/element/{el}/{section}/before_section_end` | elementor-extending.md |
+| Filter a native widget's output | `elementor/widget/render_content` filter | elementor-extending.md |
 | WooCommerce HPOS compatibility | `FeaturesUtil::declare_compatibility()` + `wc_get_order()` | woocommerce.md |
 | WooCommerce loop | Loop Grid + `elementor/query/` filter | woocommerce.md |
 | Custom REST endpoint | `register_rest_route()` + schema callback in plugin | rest-api.md |

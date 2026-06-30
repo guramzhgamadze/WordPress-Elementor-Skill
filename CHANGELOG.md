@@ -25,6 +25,71 @@ place instead of being scattered across the sub-files.
 
 ## Audit rounds
 
+### Round 27 — June 8, 2026 — Elementor extension points (from developers.elementor.com)
+- Mapped developers.elementor.com against the skill. Widgets/Controls/Dynamic Tags/Form Actions/
+  Theme Conditions were already covered deeply; the documented **components** the skill lacked are
+  now in a new **`elementor-extending.md`** (14th core file):
+  - **Custom Form Fields** (`Field_Base` + `elementor_pro/forms/fields/register`, render, the
+    Pro 3.28 method-based deps, and validation on the form lifecycle hooks).
+  - **Theme Locations** (`elementor/theme/register_locations` + `register_location` +
+    `elementor_theme_do_location()` with fallback) — the sibling of Theme Conditions.
+  - **Extending NATIVE widgets** — inject a control via
+    `elementor/element/{el}/{section}/before_section_end`, and filter output via
+    `elementor/widget/render_content` (a common need the skill didn't cover).
+  - **Finder** and **Context Menu** items (niche; Finder registrar flagged as version-variable).
+  - A consolidated **PHP + JS hooks quick-reference** and a **deprecations** table (`get_id_int`,
+    `_register_controls`/`_content_template`, `$depended_scripts`, schemes→globals,
+    `widgets_registered`→`register`, `.elementor-widget-container`, addEventListener→jQuery).
+- Wired into the router (sub-file map + 4 Quick-Reference rows), README, and `docs/index.html`
+  (13 → **14** core; 48 → **49** total).
+- **Both flagged items since VERIFIED** (web access restored): (1) the **`VISUAL_CHOICE`** control
+  is real — `\Elementor\Controls_Manager::VISUAL_CHOICE`, image-based options (`title` + `image`),
+  `columns`/`default`/`label_block`; added a concrete §7 example to `elementor-extending.md` and
+  removed the hedge. (2) **No published third-party PHP API for custom Atomic Elements** exists as
+  of mid-2026 (no `Atomic_Widget_Base`; docs still point to `Widget_Base`; atomic elements are
+  documented only as a *data structure*) — the V4 note is now stated definitively, and the
+  "keep targeting V3 `Widget_Base`" stance is confirmed correct.
+  Sources: developers.elementor.com/docs/editor-controls/control-visual-choice/ ·
+  developers.elementor.com/docs/data-structure/atomic-elements/
+
+### Round 26 — June 8, 2026 — Common WordPress APIs (from developer.wordpress.org)
+- Mapped developer.wordpress.org against the skill and filled the real gaps with a new
+  **`wordpress-apis.md`** (13th core file) covering the Common APIs the skill lacked:
+  - **Options API** — with the **WP 6.6** change: pass an explicit **boolean `autoload`** (not
+    `'yes'`/`'no'`); `false` for large/rarely-used options (a real performance lever).
+  - **Settings API** — the full review-safe admin-settings-page pattern (`register_setting` +
+    `sanitize_callback` as the single trusted cleaning point + `settings_fields()` nonce +
+    escaped field renderers + capability-gated page).
+  - **Metadata API** — `register_post_meta` with `show_in_rest` (needed for Elementor Dynamic
+    Tags / Loop) + sanitize/auth callbacks.
+  - **Roles & Capabilities** — gate by capability, never by role; add custom caps on activation.
+  - **WP-Cron** — scheduling + clear-on-deactivation, custom intervals, and the key caveats:
+    it's **traffic-triggered (not real cron)** → `DISABLE_WP_CRON` + a system cron, and use
+    **Action Scheduler** for heavy/reliable jobs.
+  - **Internationalization** — text-domain = slug, the escaping i18n variants, and the **WP 6.7**
+    rule: don't call `__()` before the `init` action (`_doing_it_wrong` "triggered too early");
+    JS i18n via `wp_set_script_translations`; `wp i18n make-pot`.
+- Verified the two recent changes live (WP 6.6 autoload, WP 6.7 translation timing). Wired into
+  the router (sub-file map + 5 Quick-Reference rows), README, and `docs/index.html`
+  (12 → **13** core; 47 → **48** total).
+
+### Round 25 — June 8, 2026 — debugging & static-analysis guide
+- New **`debugging.md`** (12th core file) — closes the gap between SKILL.md's advertised
+  "debugging of WordPress/Elementor issues" and what the skill actually delivered. Covers:
+  - **Static analysis** (lead section): **PHPCS + WPCS** (install, a committed `phpcs.xml.dist`
+    ruleset with text-domain/prefix/min-WP config, security sniffs, `phpcbf`), **PHPStan**
+    (WordPress extension, level, baseline, catching typed-override fatals), and **Plugin Check**
+    (the review-grade superset that bundles PHPCS+WPCS) — with a table of what each tool does and
+    doesn't catch, and the nuance that `--standard=WordPress` surfaces more than PC's review ruleset.
+  - **Runtime**: `WP_DEBUG`/`WP_DEBUG_LOG`/`WP_DEBUG_DISPLAY`/`SCRIPT_DEBUG`/`SAVEQUERIES`,
+    `debug.log`, Query Monitor, guarded `error_log()`, and WSOD (fatal) diagnosis.
+  - **Elementor-specific**: Safe Mode, Regenerate Files & Data, element-cache freezes, editor-preview
+    crashes, System Info.
+  - **Frontend**: browser console / Network / **computed-styles** inspection for the `var()`/specificity
+    class of bugs.
+  - A **symptom → likely cause → first check** table seeded from the real `CLAUDE.md` cases.
+- Wired into the router + README + `docs/index.html` (11 → **12** core; 46 → **47** total).
+
 ### Round 24 — June 8, 2026 — official wordpress.org submission reference
 - Analyzed three canonical sources — the **Detailed Plugin Guidelines**, the **Plugin Check**
   plugin page, and the **make.wordpress.org/plugins** review-team blog — and distilled them into a
