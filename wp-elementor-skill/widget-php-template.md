@@ -248,9 +248,9 @@ protected function content_template(): void {
     if ( ! settings.title ) { return; }
     #>
     <div class="myplugin-widget">
-        <h2 class="myplugin-widget__title">{{{ settings.title }}}</h2>
+        <h2 class="myplugin-widget__title">{{ settings.title }}</h2>
         <# if ( settings.description ) { #>
-            <div class="myplugin-widget__desc">{{{ settings.description }}}</div>
+            <div class="myplugin-widget__desc">{{ settings.description }}</div>
         <# } #>
     </div>
     <?php
@@ -259,8 +259,9 @@ protected function content_template(): void {
 
 > **Note:** If the PHP template contains complex logic that cannot be replicated in JS, it is
 > acceptable for `content_template()` to output a simplified preview. Elementor's own Post
-> Content widget uses this approach. `{{{ }}}` (not `{{ }}`) renders TEXT values without
-> double-encoding apostrophes.
+> Content widget uses this approach. Use `{{ }}` (escaped) for user TEXT values — reserve `{{{ }}}`
+> for Elementor-generated HTML only (see field-notes.md §2). `{{ }}` renders correctly with no
+> apostrophe corruption (the browser decodes the escaped entity on display).
 
 ---
 

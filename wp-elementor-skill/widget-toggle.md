@@ -270,7 +270,7 @@ protected function content_template(): void {
                         <span class="myplugin-toggle-icon-closed">{{{ iconHTML.value }}}</span>
                     </span>
                 <# } #>
-                <span class="myplugin-toggle-title-text">{{{ tab.tab_title }}}</span>
+                <span class="myplugin-toggle-title-text">{{ tab.tab_title }}</span>
             </{{{ tag }}}>
             <div class="myplugin-toggle-content" style="display:none;">
                 {{{ tab.tab_content }}}

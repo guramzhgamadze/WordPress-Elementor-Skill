@@ -122,6 +122,10 @@ A compliant submission needs, in lockstep (full checklist in `field-notes.md` §
 - **Listing assets** (`screenshot-N.png` + captions, `banner-*`, `icon-*`) live in SVN
   `/assets/`, **not** in the plugin zip.
 
+> 🚀 **Actually deploying to the directory** (the `svn co` → copy to `trunk/` → `svn cp trunk
+> tags/X.Y.Z` → `svn ci` release dance, plus updating `/assets/`) is a Subversion task — see the
+> **`svn/`** sub-bundle (`svn/svn.md`), which has a WordPress.org-specific worked example.
+
 > Source of record (re-check before each submission, guidelines do change):
 > developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/ ·
 > wordpress.org/plugins/plugin-check/ · make.wordpress.org/plugins/ (review-team announcements)

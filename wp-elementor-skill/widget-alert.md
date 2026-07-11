@@ -156,10 +156,10 @@ protected function content_template(): void {
             <button type="button" class="myplugin-alert-dismiss">&times;</button>
         <# } #>
         <# if ( settings.alert_title ) { #>
-            <span class="myplugin-alert-title">{{{ settings.alert_title }}}</span>
+            <span class="myplugin-alert-title">{{ settings.alert_title }}</span>
         <# } #>
         <# if ( settings.alert_description ) { #>
-            <span class="myplugin-alert-description">{{{ settings.alert_description }}}</span>
+            <span class="myplugin-alert-description">{{ settings.alert_description }}</span>
         <# } #>
     </div>
     <# } #>

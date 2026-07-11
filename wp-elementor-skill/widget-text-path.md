@@ -292,7 +292,7 @@ protected function content_template(): void {
     <div class="myplugin-text-path">
         <svg viewBox="{{ preset.viewBox }}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
             <path id="{{ pathId }}" d="{{ preset.d }}" fill="none" stroke="{{ showPath ? 'currentColor' : 'transparent' }}"></path>
-            <text><textPath href="#{{ pathId }}" startOffset="{{ offset }}%">{{{ settings.text }}}</textPath></text>
+            <text><textPath href="#{{ pathId }}" startOffset="{{ offset }}%">{{ settings.text }}</textPath></text>
         </svg>
     </div>
     <?php

@@ -236,15 +236,15 @@ protected function content_template(): void {
     ?>
     <div class="myplugin-counter">
         <div class="myplugin-counter-number-wrapper">
-            <span class="myplugin-counter-number-prefix">{{{ settings.prefix }}}</span>
+            <span class="myplugin-counter-number-prefix">{{ settings.prefix }}</span>
             <span class="myplugin-counter-number"
                 data-duration="{{ settings.duration }}"
                 data-to-value="{{ settings.ending_number }}"
-                data-from-value="{{ settings.starting_number }}">{{{ settings.starting_number }}}</span>
-            <span class="myplugin-counter-number-suffix">{{{ settings.suffix }}}</span>
+                data-from-value="{{ settings.starting_number }}">{{ settings.starting_number }}</span>
+            <span class="myplugin-counter-number-suffix">{{ settings.suffix }}</span>
         </div>
         <# if ( settings.title ) { #>
-            <p class="myplugin-counter-title">{{{ settings.title }}}</p>
+            <p class="myplugin-counter-title">{{ settings.title }}</p>
         <# } #>
     </div>
     <?php

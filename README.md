@@ -36,6 +36,7 @@ The documentation is split into focused, single-topic files. `SKILL.md` is the r
 | [`wp-org-guidelines.md`](./wp-elementor-skill/wp-org-guidelines.md) | **wordpress.org submission reference.** The 18 official Detailed Plugin Guidelines (paraphrased, actionable), Plugin Check 2.0.0 check-categories + how to run it (admin UI / WP-CLI, static vs runtime, auto-scan on updates), the AI-assisted-but-human-decided review process, and required headers/`readme.txt` fields. Sourced from the official guidelines, the Plugin Check page, and the review-team blog. |
 | [`debugging.md`](./wp-elementor-skill/debugging.md) | **Debugging & static-analysis workflow.** PHPCS+WPCS (install, `phpcs.xml.dist` ruleset, security sniffs), PHPStan (WordPress, typed-override fatals), Plugin Check; `WP_DEBUG`/`WP_DEBUG_LOG`/`SCRIPT_DEBUG` + Query Monitor + WSOD diagnosis; Elementor Safe Mode / Regenerate Files & Data / element-cache freezes / editor-preview crashes; browser console + computed-styles; and a symptom→cause→where-to-look table. |
 | [`wordpress-apis.md`](./wp-elementor-skill/wordpress-apis.md) | **Common WordPress APIs** the rest of the skill doesn't cover. Options API (WP 6.6+ boolean `autoload`), the review-safe **Settings API** admin-page pattern (nonce + single sanitize callback + escaped fields), Metadata API (`register_post_meta` + `show_in_rest`), Roles & Capabilities (gate by cap, not role), **WP-Cron** (+ the "not real cron" caveat, `DISABLE_WP_CRON` + system cron, Action Scheduler), and **Internationalization** (text-domain = slug, the WP 6.7 `init`-timing rule, JS i18n, `make-pot`). |
+| [`svn/`](./wp-elementor-skill/svn/) | **Subversion (SVN) sub-bundle** (`svn/svn.md` + `svn/references/`) — a self-contained SVN reference distilled from the official SVN Book (1.7). Covers the daily work cycle, branching/tagging/merging, properties (`svn:ignore`/`svn:externals`/locking), and repository administration — plus a **WordPress.org plugin/theme SVN** worked example (`trunk`/`tags`/`assets`, tag a release, `Stable tag` match). This is how you *deploy* to the directory that `wp-org-guidelines.md` documents the *rules* for. |
 
 ---
 
@@ -80,7 +81,7 @@ Once installed as a skill in Claude:
 This skill is audited against official live sources after every significant release.
 The full round-by-round history lives in [`CHANGELOG.md`](./CHANGELOG.md).
 
-**Latest — Round 21 (June 8, 2026):** Post-release currency sweep. WordPress **7.0 "Armstrong"**
+**Latest — Round 21 (July 11, 2026):** Post-release currency sweep. WordPress **7.0 "Armstrong"**
 shipped May 20, 2026; Elementor is at **4.2.0** (June 5, 2026); WooCommerce **10.8** (May 26, 2026).
 This round removed the obsolete WP 7.0 beta/RC/delay narration from the router, settled the RTC
 storage and WooCommerce 10.7 sections into shipped fact, consolidated two pairs of duplicate

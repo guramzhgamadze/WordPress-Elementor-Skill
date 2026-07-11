@@ -181,12 +181,12 @@ protected function render(): void {
 protected function content_template(): void {
     ?>
     <#
-    var title = settings.title;
+    // ✅ Escape user text with _.escape() before it reaches {{{ title }}} — the triple-brace is
+    // required for the optional <a> wrapper (HTML), so the text/URL must be escaped HERE, or it
+    // is an editor-context XSS that wp.org review rejects. See field-notes.md §2.
+    var title = _.escape( settings.title );
     if ( settings.link && settings.link.url ) {
-        // ✅ Official Elementor pattern — use link.url directly (per developers.elementor.com/docs/widgets/advanced-example/)
-        // Content templates run in the trusted editor context; Elementor's own Link control
-        // validates and sanitises URLs server-side before they reach the editor preview.
-        title = '<a href="' + settings.link.url + '">' + title + '</a>';
+        title = '<a href="' + _.escape( settings.link.url ) + '">' + title + '</a>';
     }
     var tag  = elementor.helpers.validateHTMLTag( settings.header_size );
     var size = settings.size && 'default' !== settings.size ? ' elementor-size-' + settings.size : '';

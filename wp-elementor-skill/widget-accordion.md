@@ -301,7 +301,7 @@ protected function content_template(): void {
                         <span class="myplugin-accordion-icon-closed">{{{ iconHTML.value }}}</span>
                     </span>
                 <# } #>
-                <span class="myplugin-accordion-title">{{{ tab.tab_title }}}</span>
+                <span class="myplugin-accordion-title">{{ tab.tab_title }}</span>
             </{{{ tag }}}>
             <div id="{{ contentId }}"
                  class="myplugin-tab-content{{ isActive ? ' myplugin-active' : '' }}"

@@ -25,7 +25,22 @@ place instead of being scattered across the sub-files.
 
 ## Audit rounds
 
-### Round 27 — June 8, 2026 — Elementor extension points (from developers.elementor.com)
+### Round 28 — July 11, 2026 — bundled a standalone SVN skill
+- Reviewed a user-authored **Subversion (SVN)** skill (a `.skill` zip: `SKILL.md` + 4
+  `references/` files, ~1,205 lines, distilled from the official SVN Book 1.7). Checked every
+  claim against SVN behaviour — **accurate throughout, no fixes needed** (verified: `--reintegrate`
+  auto since 1.8, `^/` since 1.6, peg revisions, the `enable-auto-props` gotcha, the three
+  meanings of "lock", error codes, `svnadmin`/`svnlook` local-path-not-URL, BDB-only `recover`,
+  and the WordPress.org `trunk`/`tags`/`assets` + `Stable tag` specifics that match our own files).
+- **Integrated as a self-contained sub-bundle at `svn/`** (preserved 1:1 — `svn/svn.md` +
+  `svn/references/`). Wired in via the router (sub-file map + 2 Quick-Reference rows) and
+  cross-linked from `wp-org-guidelines.md` and `field-notes.md` §10 ("the directory runs on SVN;
+  here's how to actually deploy"). First subfolder in the otherwise-flat skill — a deliberate
+  choice to keep the donated skill intact and loadable on demand.
+- README + `docs/index.html` updated: 49 → **54** files (14 core + 35 widget + a 5-file SVN
+  sub-bundle).
+
+### Round 27 — July 11, 2026 — Elementor extension points (from developers.elementor.com)
 - Mapped developers.elementor.com against the skill. Widgets/Controls/Dynamic Tags/Form Actions/
   Theme Conditions were already covered deeply; the documented **components** the skill lacked are
   now in a new **`elementor-extending.md`** (14th core file):
@@ -52,7 +67,7 @@ place instead of being scattered across the sub-files.
   Sources: developers.elementor.com/docs/editor-controls/control-visual-choice/ ·
   developers.elementor.com/docs/data-structure/atomic-elements/
 
-### Round 26 — June 8, 2026 — Common WordPress APIs (from developer.wordpress.org)
+### Round 26 — July 11, 2026 — Common WordPress APIs (from developer.wordpress.org)
 - Mapped developer.wordpress.org against the skill and filled the real gaps with a new
   **`wordpress-apis.md`** (13th core file) covering the Common APIs the skill lacked:
   - **Options API** — with the **WP 6.6** change: pass an explicit **boolean `autoload`** (not
@@ -73,7 +88,7 @@ place instead of being scattered across the sub-files.
   the router (sub-file map + 5 Quick-Reference rows), README, and `docs/index.html`
   (12 → **13** core; 47 → **48** total).
 
-### Round 25 — June 8, 2026 — debugging & static-analysis guide
+### Round 25 — July 11, 2026 — debugging & static-analysis guide
 - New **`debugging.md`** (12th core file) — closes the gap between SKILL.md's advertised
   "debugging of WordPress/Elementor issues" and what the skill actually delivered. Covers:
   - **Static analysis** (lead section): **PHPCS + WPCS** (install, a committed `phpcs.xml.dist`
@@ -90,7 +105,7 @@ place instead of being scattered across the sub-files.
   - A **symptom → likely cause → first check** table seeded from the real `CLAUDE.md` cases.
 - Wired into the router + README + `docs/index.html` (11 → **12** core; 46 → **47** total).
 
-### Round 24 — June 8, 2026 — official wordpress.org submission reference
+### Round 24 — July 11, 2026 — official wordpress.org submission reference
 - Analyzed three canonical sources — the **Detailed Plugin Guidelines**, the **Plugin Check**
   plugin page, and the **make.wordpress.org/plugins** review-team blog — and distilled them into a
   new **`wp-org-guidelines.md`** (11th core file):
@@ -116,7 +131,7 @@ place instead of being scattered across the sub-files.
   prefixing) — this governs the public identity. Updated the README "principles" list (5 → 6) and
   the docs "golden rules" count (6 → 7); existing "Golden Rule #6" references are unchanged.
 
-### Round 23 — June 8, 2026 — field notes from real plugins (+ two corrections)
+### Round 23 — July 11, 2026 — field notes from real plugins (+ two corrections)
 - Mined the `CLAUDE.md` mistake-logs from two shipped Elementor plugins (a frontend-auth suite
   and an embedded exam app) and distilled the generalizable lessons into a new
   **`field-notes.md`** (10th core file) — widget-lifecycle fatals, `content_template()` escaping,
@@ -138,7 +153,7 @@ place instead of being scattered across the sub-files.
   `content_template()` examples — a follow-up sweep to `{{ }}` is recommended for wp.org-bound use
   (tracked, not yet applied).
 
-### Round 22 — June 8, 2026 — widget coverage expansion
+### Round 22 — July 11, 2026 — widget coverage expansion
 - Checked Elementor 4.0–4.2 for newly added widgets. The new elements are all **V4 Atomic
   Elements** (Div Block, Flexbox Container, Atomic Heading/Paragraph/Image/Button/Video/SVG,
   Atomic Tabs, and Atomic Forms + composable fields — Radio/Select/Date/Time/File Upload added
@@ -155,7 +170,7 @@ place instead of being scattered across the sub-files.
 - Updated the router map (sub-file map + Quick Reference) and `docs/index.html` counts
   (33 → **35** widget files; 42 → **44** total).
 
-### Round 21 — June 8, 2026 — post-release currency sweep + restructure
+### Round 21 — July 11, 2026 — post-release currency sweep + restructure
 - **WordPress 7.0 "Armstrong" shipped May 20, 2026** (delayed from the original April 9 target
   while the Real-Time Collaboration storage layer was redesigned into a **dedicated core database
   table**, replacing the rejected `wp_post_meta` / `wp_sync_storage` approach).

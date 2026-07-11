@@ -193,8 +193,8 @@ protected function content_template(): void {
     if ( ! settings.selected_icon || ! settings.selected_icon.value ) { return; }
     var iconHTML = elementor.helpers.renderIcon( view, settings.selected_icon, { 'aria-hidden': true }, 'i', 'object' );
     var tag = settings.link && settings.link.url ? 'a' : 'div';
-    // ✅ Official Elementor pattern — link.url used directly per official advanced example
-    var linkAttr = 'a' === tag ? 'href="' + settings.link.url + '"' : '';
+    // ✅ Escape the URL — it lands in an attribute via {{{ linkAttr }}} (see field-notes.md §2).
+    var linkAttr = 'a' === tag ? 'href="' + _.escape( settings.link.url ) + '"' : '';
     #>
     <{{{ tag }}} class="myplugin-icon" {{{ linkAttr }}}>
         {{{ iconHTML.value }}}

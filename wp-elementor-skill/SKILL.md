@@ -38,6 +38,7 @@ for the task at hand.
 | Accessibility checklist, WCAG 2.2 AA, ARIA patterns | **performance.md** |
 | **Hard-won production gotchas** — widget lifecycle fatals, `content_template()` escaping, CSS-in-Elementor footguns, transactional email, wp.org review/packaging, embedding apps | **field-notes.md** |
 | **wordpress.org submission** — the 18 Directory Guidelines, Plugin Check 2.0.0 categories/usage, review process, required headers/readme | **wp-org-guidelines.md** |
+| **Subversion (SVN)** — deploying/tagging a release on the wordpress.org plugin/theme SVN (trunk/tags/assets), the daily work cycle, branching/merging, properties, repo admin | **svn/svn.md** (self-contained sub-bundle; `svn/references/` goes deeper) |
 | **Debugging & static analysis** — PHPCS+WPCS, PHPStan, Plugin Check, `WP_DEBUG`/Query Monitor, Elementor Safe Mode/cache, symptom→cause table | **debugging.md** |
 | **Common WordPress APIs** — admin settings page (Settings + Options API), `register_meta`, roles/capabilities, WP-Cron, internationalization (i18n) | **wordpress-apis.md** |
 
@@ -261,6 +262,8 @@ activate plugin, clear Elementor cache, etc.
 | Custom field exposed to REST / Elementor | `register_post_meta` + `show_in_rest` | wordpress-apis.md |
 | Scheduled / background task | WP-Cron (`wp_schedule_event`) + Action Scheduler for heavy jobs | wordpress-apis.md |
 | Make a plugin translatable | i18n functions + text-domain = slug + WP 6.7 `init`-timing rule | wordpress-apis.md |
+| Deploy / tag a plugin release on wp.org SVN | `svn co` → copy to `trunk/` → `svn cp trunk tags/X.Y.Z` → `svn ci` (assets/ is a sibling) | svn/svn.md |
+| Any SVN task (checkout, commit, branch, merge, conflicts, repo admin) | Subversion sub-bundle | svn/svn.md |
 | WP 6.8 password hashing | `wp_check_password()` + `wp_password_needs_rehash()` | php-standards.md |
 | WP 6.8 app password / key hashing | `wp_fast_hash()` + `wp_verify_fast_hash()` (BLAKE2b) | php-standards.md |
 | JS standards + enqueue defer/async | IIFE + WP 6.3+ enqueue API | js-css-standards.md |

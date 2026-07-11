@@ -249,21 +249,24 @@ protected function content_template(): void {
     var image_url = elementor.imagesManager.getImageUrl( image );
     #>
     <div class="myplugin-testimonial">
-        <div class="myplugin-testimonial-content">{{{ settings.testimonial_content }}}</div>
+        <div class="myplugin-testimonial-content">{{ settings.testimonial_content }}</div>
         <div class="myplugin-testimonial-meta">
             <# if ( image_url ) { #>
             <div class="myplugin-testimonial-image"><img src="{{ image_url }}" alt=""></div>
             <# } #>
             <div class="myplugin-testimonial-details">
                 <# if ( settings.testimonial_name ) {
+                    // ✅ Escape the name before it reaches {{{ nameHtml }}} (triple-brace needed
+                    // for the optional <a>) — see field-notes.md §2.
+                    var safeName = _.escape( settings.testimonial_name );
                     var nameHtml = settings.link && settings.link.url
-                        ? '<a href="' + settings.link.url + '">' + settings.testimonial_name + '</a>'
-                        : settings.testimonial_name;
+                        ? '<a href="' + _.escape( settings.link.url ) + '">' + safeName + '</a>'
+                        : safeName;
                 #>
                     <div class="myplugin-testimonial-name">{{{ nameHtml }}}</div>
                 <# } #>
                 <# if ( settings.testimonial_job ) { #>
-                    <div class="myplugin-testimonial-job">{{{ settings.testimonial_job }}}</div>
+                    <div class="myplugin-testimonial-job">{{ settings.testimonial_job }}</div>
                 <# } #>
             </div>
         </div>

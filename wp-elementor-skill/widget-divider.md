@@ -207,7 +207,7 @@ protected function content_template(): void {
     <div class="myplugin-divider">
         <span class="myplugin-divider-separator">
             <# if ( 'line_text' === settings.look && settings.text ) { #>
-                <span class="myplugin-divider__text">{{{ settings.text }}}</span>
+                <span class="myplugin-divider__text">{{ settings.text }}</span>
             <# } else if ( 'line_icon' === settings.look && settings.selected_icon && settings.selected_icon.value ) {
                 var iconHTML = elementor.helpers.renderIcon( view, settings.selected_icon, { 'aria-hidden': true }, 'i', 'object' );
             #>

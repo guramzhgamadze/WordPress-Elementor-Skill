@@ -218,7 +218,7 @@ protected function content_template(): void {
                  role="tab"
                  aria-selected="{{ isActive ? 'true' : 'false' }}"
                  tabindex="{{ isActive ? '0' : '-1' }}">
-                {{{ tab.tab_title }}}
+                {{ tab.tab_title }}
             </div>
             <# } ); #>
         </div>

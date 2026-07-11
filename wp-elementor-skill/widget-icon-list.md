@@ -225,15 +225,15 @@ protected function content_template(): void {
         <# _.each( settings.icon_list, function( item ) {
             var iconHTML = elementor.helpers.renderIcon( view, item.selected_icon, { 'aria-hidden': true }, 'i', 'object' );
             var tag = item.link && item.link.url ? 'a' : 'span';
-            // ✅ Official Elementor pattern — link.url used directly per official advanced example
-            var linkAttr = 'a' === tag ? 'href="' + item.link.url + '"' : '';
+            // ✅ Escape the URL — it lands in an attribute via {{{ linkAttr }}} (see field-notes.md §2).
+            var linkAttr = 'a' === tag ? 'href="' + _.escape( item.link.url ) + '"' : '';
         #>
         <li class="myplugin-icon-list-item elementor-repeater-item-{{ item._id }}">
             <{{{ tag }}} {{{ linkAttr }}}>
                 <# if ( iconHTML && iconHTML.value ) { #>
                     <span class="myplugin-icon-list-icon">{{{ iconHTML.value }}}</span>
                 <# } #>
-                <span class="myplugin-icon-list-text">{{{ item.text }}}</span>
+                <span class="myplugin-icon-list-text">{{ item.text }}</span>
             </{{{ tag }}}>
         </li>
         <# } ); #>

@@ -380,7 +380,7 @@ protected function content_template(): void {
                     <span class="elementor-button-icon elementor-align-icon-left">{{{ iconHTML.value }}}</span>
                 <# } #>
                 <# if ( settings.text ) { #>
-                    <span class="elementor-button-text">{{{ settings.text }}}</span>
+                    <span class="elementor-button-text">{{ settings.text }}</span>
                 <# } #>
                 <# if ( hasIcon && 'right' === settings.icon_align ) { #>
                     <span class="elementor-button-icon elementor-align-icon-right">{{{ iconHTML.value }}}</span>

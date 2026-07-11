@@ -210,7 +210,7 @@ protected function content_template(): void {
     #>
     <div class="myplugin-star-rating">
         <# if ( settings.title ) { #>
-            <span class="myplugin-star-rating__title">{{{ settings.title }}}</span>
+            <span class="myplugin-star-rating__title">{{ settings.title }}</span>
         <# } #>
         <div class="myplugin-star-rating__wrapper">{{{ stars }}}</div>
     </div>

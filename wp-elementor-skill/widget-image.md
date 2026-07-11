@@ -403,7 +403,7 @@ protected function content_template(): void {
         <# if ( link_url ) { #></a><# } #>
         <# if ( hasCaption ) { #>
             <figcaption class="widget-image-caption wp-caption-text">
-                {{{ 'custom' === settings.caption_source ? settings.caption : '' }}}
+                {{ 'custom' === settings.caption_source ? settings.caption : '' }}
             </figcaption>
         </figure>
         <# } #>

@@ -237,10 +237,11 @@ protected function content_template(): void {
     };
     var image_url = elementor.imagesManager.getImageUrl( image );
     var tag   = elementor.helpers.validateHTMLTag( settings.title_size );
-    var title = settings.title_text;
+    // ✅ Escape user text/URL before it reaches {{{ title }}} (triple-brace needed for the <a>
+    // wrapper) — otherwise it's an editor-context XSS wp.org rejects. See field-notes.md §2.
+    var title = _.escape( settings.title_text );
     if ( settings.link && settings.link.url ) {
-        // ✅ Official Elementor pattern — link.url used directly per official advanced example
-        title = '<a href="' + settings.link.url + '">' + title + '</a>';
+        title = '<a href="' + _.escape( settings.link.url ) + '">' + title + '</a>';
     }
     #>
     <div class="myplugin-image-box">
@@ -248,7 +249,7 @@ protected function content_template(): void {
         <div class="myplugin-image-box-content">
             <{{{ tag }}} class="myplugin-image-box-title">{{{ title }}}</{{{ tag }}}>
             <# if ( settings.description_text ) { #>
-                <p class="myplugin-image-box-description">{{{ settings.description_text }}}</p>
+                <p class="myplugin-image-box-description">{{ settings.description_text }}</p>
             <# } #>
         </div>
     </div>

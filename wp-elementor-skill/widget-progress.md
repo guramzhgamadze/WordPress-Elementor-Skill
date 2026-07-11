@@ -141,7 +141,7 @@ protected function content_template(): void {
     <div class="myplugin-progress">
         <# if ( settings.title ) { #>
         <div class="myplugin-progress-title">
-            <span>{{{ settings.title }}}</span>
+            <span>{{ settings.title }}</span>
             <# if ( 'yes' === settings.display_percentage ) { #>
                 <span class="myplugin-progress-percentage">{{ pct }}%</span>
             <# } #>
@@ -151,7 +151,7 @@ protected function content_template(): void {
              aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100">
             <div class="myplugin-bar-fill" style="width:{{ pct }}%">
                 <# if ( settings.inner_text ) { #>
-                    <span class="myplugin-bar-inner-text">{{{ settings.inner_text }}}</span>
+                    <span class="myplugin-bar-inner-text">{{ settings.inner_text }}</span>
                 <# } #>
             </div>
         </div>

@@ -69,7 +69,7 @@ protected function content_template(): void {
         <div class="myplugin-shortcode">
             <p class="myplugin-shortcode-placeholder">
                 <?php echo esc_html__( '[Shortcode placeholder — renders on frontend]', 'myplugin' ); ?>
-                <code>{{{ settings.shortcode }}}</code>
+                <code>{{ settings.shortcode }}</code>
             </p>
         </div>
     <# } #>

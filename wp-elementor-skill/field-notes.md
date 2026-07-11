@@ -1,10 +1,12 @@
 # Field Notes — Hard-Won Production Gotchas
 
+> **When to read this file:** Alongside the topic files whenever building a custom widget, plugin,
+> or wp.org-bound work — this is the "why it actually breaks" layer. Every rule exists because the
+> opposite **shipped and broke something**; these are the bugs that pass `php -l` / `node --check`,
+> survive code review, and only surface on a live page or in a wp.org submission.
+
 Lessons distilled from shipping real WordPress/Elementor plugins (auth forms, an embedded
-exam app) — every rule here exists because the opposite **shipped and broke something**.
-These are the bugs that pass `php -l` / `node --check`, survive code review, and only surface
-on a live page or in a wp.org submission. Read this alongside the topic files; it is the
-"why it actually breaks" layer.
+exam app).
 
 ---
 
@@ -256,6 +258,9 @@ on a live page or in a wp.org submission. Read this alongside the topic files; i
   graphics after any **rename** — an old-brand banner survives unnoticed across releases.
 - **Run Plugin Check (the wp.org reviewer's own tool) before every resubmission**, excluding any
   vendored-lib directory, until **your** code is 0 findings.
+- **The directory runs on SVN, not git.** The release itself — checkout, copy the built tree into
+  `trunk/`, `svn cp trunk tags/X.Y.Z`, commit, and manage `/assets/` — is a Subversion workflow.
+  Full commands + a WordPress.org worked example are in the **`svn/`** sub-bundle (`svn/svn.md`).
 
 ---
 

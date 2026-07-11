@@ -205,7 +205,7 @@ class MyPlugin_Nested_Tabs extends Widget_Nested_Base {
                     <button type="button"
                             class="myplugin-nested-tabs__title{{ isActive ? ' myplugin-active' : '' }}"
                             role="tab" aria-selected="{{ isActive ? 'true' : 'false' }}"
-                            tabindex="{{ isActive ? '0' : '-1' }}">{{{ item.tab_title }}}</button>
+                            tabindex="{{ isActive ? '0' : '-1' }}">{{ item.tab_title }}</button>
                 <# } ); #>
             </div>
             <div class="myplugin-nested-tabs__content"></div>
