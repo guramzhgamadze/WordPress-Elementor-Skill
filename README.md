@@ -33,8 +33,8 @@ The documentation is split into focused, single-topic files. `SKILL.md` is the r
 | [`offcanvas-ui.md`](./wp-elementor-skill/offcanvas-ui.md) | **Accessible Off-Canvas UI.** Full PHP/CSS/JS pattern — `inert` attribute set in HTML markup, CSS class toggle, `myplugin-offcanvas__backdrop--hidden` in HTML, ARIA `dialog` + `aria-modal`, focus trap, iOS Safari scroll lock, `prefers-reduced-motion` support. |
 | [`performance.md`](./wp-elementor-skill/performance.md) | **Performance & Accessibility Checklists.** Frontend (LCP, lazy loading, WP 6.7+ auto-sizes, WP 6.9+ IE conditional comments, WP 6.8+ Speculative Loading), backend (WP_Query optimizations, WP 6.9+ salted cache keys, WP 7.0 RTC query scoping), WCAG 2.2 AA. |
 | [`field-notes.md`](./wp-elementor-skill/field-notes.md) | **Hard-won production gotchas** distilled from shipping real plugins. Widget-lifecycle fatals (untyped overrides, `render()` re-runs, sticky `get_name()`), `content_template()` escaping & the wp.org editor-XSS rejection, CSS-in-Elementor footguns (custom-prop cascade, flex `min-width`, body-mounted UI), `wp_mail` inline-styles, `$_COOKIE` vs `$_REQUEST`, secrets at rest, embedding standalone apps inline, and wp.org review/packaging. |
-| [`wp-org-guidelines.md`](./wp-elementor-skill/wp-org-guidelines.md) | **wordpress.org submission reference.** The 18 official Detailed Plugin Guidelines (paraphrased, actionable), Plugin Check 2.0.0 check-categories + how to run it (admin UI / WP-CLI, static vs runtime, auto-scan on updates), the AI-assisted-but-human-decided review process, and required headers/`readme.txt` fields. Sourced from the official guidelines, the Plugin Check page, and the review-team blog. |
-| [`debugging.md`](./wp-elementor-skill/debugging.md) | **Debugging & static-analysis workflow.** PHPCS+WPCS (install, `phpcs.xml.dist` ruleset, security sniffs), PHPStan (WordPress, typed-override fatals), Plugin Check; `WP_DEBUG`/`WP_DEBUG_LOG`/`SCRIPT_DEBUG` + Query Monitor + WSOD diagnosis; Elementor Safe Mode / Regenerate Files & Data / element-cache freezes / editor-preview crashes; browser console + computed-styles; and a symptom→cause→where-to-look table. |
+| [`wp-org-guidelines.md`](./wp-elementor-skill/wp-org-guidelines.md) | **wordpress.org submission reference.** The 18 official Detailed Plugin Guidelines (paraphrased, actionable), Plugin Check 2.0.0 check-categories + how to run it (admin UI / WP-CLI, static vs runtime, auto-scan on updates), the AI-assisted-but-human-decided review process, required headers/`readme.txt` fields — plus **"Hard lines from real 2026 reviews"** learned in a live review cycle (no user-authored SQL, `AUTH_KEY` rule, external-services disclosure, protocol-endpoint nonce exceptions). |
+| [`debugging.md`](./wp-elementor-skill/debugging.md) | **Debugging & static-analysis workflow.** PHPCS+WPCS (install, `phpcs.xml.dist` ruleset, security sniffs), PHPStan (WordPress, typed-override fatals), Plugin Check, **`$wpdb` sniff-suppression mechanics from real review rounds**; `WP_DEBUG`/`WP_DEBUG_LOG`/`SCRIPT_DEBUG` + Query Monitor + WSOD diagnosis; Elementor Safe Mode / Regenerate Files & Data / element-cache freezes / editor-preview crashes; browser console + computed-styles; a symptom→cause→where-to-look table; and a security-scanner (ZAP) triage guide. |
 | [`wordpress-apis.md`](./wp-elementor-skill/wordpress-apis.md) | **Common WordPress APIs** the rest of the skill doesn't cover. Options API (WP 6.6+ boolean `autoload`), the review-safe **Settings API** admin-page pattern (nonce + single sanitize callback + escaped fields), Metadata API (`register_post_meta` + `show_in_rest`), Roles & Capabilities (gate by cap, not role), **WP-Cron** (+ the "not real cron" caveat, `DISABLE_WP_CRON` + system cron, Action Scheduler), and **Internationalization** (text-domain = slug, the WP 6.7 `init`-timing rule, JS i18n, `make-pot`). |
 | [`svn/`](./wp-elementor-skill/svn/) | **Subversion (SVN) sub-bundle** (`svn/svn.md` + `svn/references/`) — a self-contained SVN reference distilled from the official SVN Book (1.7). Covers the daily work cycle, branching/tagging/merging, properties (`svn:ignore`/`svn:externals`/locking), and repository administration — plus a **WordPress.org plugin/theme SVN** worked example (`trunk`/`tags`/`assets`, tag a release, `Stable tag` match). This is how you *deploy* to the directory that `wp-org-guidelines.md` documents the *rules* for. |
 
@@ -81,12 +81,16 @@ Once installed as a skill in Claude:
 This skill is audited against official live sources after every significant release.
 The full round-by-round history lives in [`CHANGELOG.md`](./CHANGELOG.md).
 
-**Latest — Round 21 (July 11, 2026):** Post-release currency sweep. WordPress **7.0 "Armstrong"**
-shipped May 20, 2026; Elementor is at **4.2.0** (June 5, 2026); WooCommerce **10.8** (May 26, 2026).
-This round removed the obsolete WP 7.0 beta/RC/delay narration from the router, settled the RTC
-storage and WooCommerce 10.7 sections into shipped fact, consolidated two pairs of duplicate
-widget-template files into one each, and moved release history into `CHANGELOG.md` so version
-facts live in a single place.
+**Latest — Round 29 (July 22, 2026):** Second field-notes mining pass, folding the lessons of a
+**real wordpress.org review cycle** into the skill: `$wpdb` sniff-suppression mechanics and an
+OWASP-ZAP triage table (`debugging.md`); a new **"Hard lines from real 2026 reviews"** section —
+no user-authored SQL ever (*whitelist identifiers, parameterize values*), `== External services ==`
+disclosure, `wp_print_styles()` for standalone pages — in `wp-org-guidelines.md`; the
+sanitize-callback purity trap (`wordpress-apis.md`); transients under a persistent object cache
+(`php-standards.md`); and new field notes on security headers, practical CSP scope,
+web-cache-deception defense, and release packaging. (Rounds 22–28, all July 11: full restructure,
+per-widget audit, first CLAUDE.md mining, developer.wordpress.org + developers.elementor.com
+deep-dives, the `content_template()` escaping sweep, and the SVN sub-bundle.)
 
 **Next scheduled audit:** after the next WordPress release (7.0.x / 7.1) or a major Elementor release.
 
