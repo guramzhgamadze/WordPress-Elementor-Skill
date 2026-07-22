@@ -25,6 +25,35 @@ place instead of being scattered across the sub-files.
 
 ## Audit rounds
 
+### Round 29 — July 22, 2026 — second CLAUDE.md mining pass (post-review lessons)
+Re-mined the four project CLAUDE.md files that changed since the July 11 pass
+(zen-mcp-bridge — a full wp.org review cycle, zen-site-security, zen-login-authentication,
+Biology exam). Added only lessons the skill didn't already carry; no new files, no renumbering.
+- **`debugging.md`**: new "`$wpdb` sniffs & suppression mechanics" subsection (block-form
+  `phpcs:disable` for DB code, built-SQL `PreparedSQL.NotPrepared`, ≥ 1 placeholder rule, name
+  EVERY firing sniff, `ExceptionNotEscaped`, core-private functions, the
+  `Requires at least` compatibility hard-gate) + an OWASP-ZAP four-bucket triage table
+  (real / false-positive / intentional / environmental).
+- **`wp-org-guidelines.md`**: review escalation (AUTOPREREVIEW bot → human, fix the whole class,
+  same-thread concise replies, one complete update per round) + new **"Hard lines from real 2026
+  reviews"** section — no user-authored SQL ever (whitelist identifiers, parameterize values),
+  no `AUTH_KEY`/salt reuse, `== External services ==` required even for inbound services,
+  protocol-endpoint nonce exceptions are explained not faked, `wp_print_styles()` for standalone
+  HTML pages. Sharpened `Tested up to` (must equal current WP major).
+- **`wordpress-apis.md`** §2: the sanitize-callback trap — it fires on EVERY `update_option()`
+  including programmatic writes; pure function of `$input`; runtime state lives in an
+  unregistered option; WP-CLI (`is_admin()` false) can't reproduce it without adding the filter.
+- **`php-standards.md`**: transients under a persistent object cache — SQL `DELETE` on
+  `wp_options` silently no-ops; use a generation counter / `delete_transient()` registry.
+- **`field-notes.md`**: §1 sibling-plugin detection at runtime (alphabetical load order); §6
+  send-once header guard + the three header hooks, never-build-a-regex-WAF, practical CSP scope,
+  web-cache-deception `no-store` defense, shared secret-redaction helper, transient-flash + PRG
+  notices; §9 line-anchored managed-marker regexes; §10 `.css`/`.min.css` parity and
+  zip forward-slash verification + cloud-sync caveat.
+- **`SKILL.md`**: Abilities API bullet now carries the registration-timing gotcha
+  (`wp_abilities_api_init` / `wp_abilities_api_categories_init`, required pre-registered
+  category, real `Requires at least: 6.9` floor).
+
 ### Round 28 — July 11, 2026 — bundled a standalone SVN skill
 - Reviewed a user-authored **Subversion (SVN)** skill (a `.skill` zip: `SKILL.md` + 4
   `references/` files, ~1,205 lines, distilled from the official SVN Book 1.7). Checked every

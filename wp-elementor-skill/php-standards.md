@@ -128,6 +128,13 @@ function myplugin_get_cached_data( int $post_id ): array {
 }
 ```
 
+> ⚠️ **Under a persistent object cache (Redis/Memcached), transients are NOT in `wp_options`.**
+> A direct `DELETE … LIKE '_transient_%'` on the options table silently no-ops — "revoke all" /
+> "clear all" *appears* to work but nothing is invalidated (a real production bug). Never
+> bulk-delete transients with SQL. For group invalidation, keep an options-backed **generation
+> counter** (the counter is part of every cache key; bump it to invalidate everything at once) or
+> a registry of known keys removed via `delete_transient()`.
+
 ---
 
 ## General PHP Rules

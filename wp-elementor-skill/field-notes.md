@@ -40,6 +40,11 @@ exam app).
   optional group controls (e.g. `Group_Control_Box_Shadow`) in `class_exists()` for
   cross-version safety. (If preload/opcache/static-analysis chokes on `\Elementor\*` type hints
   in a hook callback, drop the hint and verify with `class_exists()` inside instead.)
+- **Detect companion/sibling plugins at RUNTIME, never at file-load.** Plugins load in
+  alphabetical order, so a constant/class another plugin defines may not exist yet when your file
+  is parsed — a file-scope `defined()` check silently returns false for any plugin that sorts
+  after yours. Check `defined()` / `class_exists()` from `plugins_loaded` (or later), inside the
+  behaviour that needs it.
 - **A new UI section inside a widget MUST ship its own Style controls (Golden Rule #6).** Adding
   markup with CSS-only and no controls means its heading/colours inherit the theme with no way
   to change them — exactly the "I can't style this" complaint. Every new section needs a matching
@@ -186,6 +191,33 @@ exam app).
   user input` is acceptable.
 - **`sanitize_text_field()` always returns a string** (even `''` for array/object input). A
   following `is_string()` guard is dead code (PHPStan `function.alreadyNarrowedType`) — drop it.
+- **Security headers need a send-once guard — and three hooks.** Other plugins send the same
+  headers (X-Frame-Options, nosniff…); check `headers_list()` before sending so you never
+  duplicate one already queued. Send on `send_headers` (front end) **plus** `admin_init` and
+  `login_init` — `send_headers` alone never covers wp-admin or the login screen. Exception: a
+  **strict** `Cache-Control: no-store, private` must overwrite whatever weaker value a
+  cache/theme queued earlier — don't send-once-guard that one.
+- **Never build a regex request-filter "WAF"** that pattern-matches SQLi/XSS/XXE payloads —
+  bypass-prone, false-positive-prone, breaks sites, and wp.org reviewers reject it. A platform
+  plugin defends **transport + configuration**; it cannot patch other code's bugs — document
+  what's out of scope instead of shipping snake oil.
+- **CSP on WordPress: only the nonce-free directives.** `object-src 'none'`, `base-uri 'self'`
+  and `frame-ancestors` are deliverable; a real `script-src` policy is impractical on WordPress
+  (inline scripts everywhere) — don't attempt it. Assemble the entire policy into **ONE**
+  `Content-Security-Policy` header; never emit two.
+- **Web-cache deception has a buildable defense:** send `Cache-Control: no-store, private` on
+  (a) logged-in responses, (b) dynamic responses served under a static-looking extension
+  (`/account.css`), and (c) REST auth responses — plus define the cache-plugin bypass constants
+  (`DONOTCACHEPAGE` etc.). A broken logged-in cache bypass really does serve guest-cached HTML to
+  authenticated users in production.
+- **Secret redaction lives in ONE shared helper used by every output path.** Redacting an option
+  name in one tool is pointless while another exit (a DB reader, an options dump, an export) can
+  read the same value — route every endpoint through the same `is_secret_name()` / redaction
+  functions.
+- **One-time notices: transient flash + PRG, never a URL flag.** A "saved!" notice read from
+  `$_GET` survives every refresh. Set a short **user-scoped transient**, redirect to a clean URL
+  (Post/Redirect/Get), then read-and-`delete_transient()` on display — it shows once, never
+  again.
 
 ---
 
@@ -231,6 +263,11 @@ exam app).
 - **Rewrite-rule changes need a permalink flush** — a new action slug 404s until rules regenerate.
   Flush on activation, and on first load after an update; don't rely on the user visiting
   Settings → Permalinks.
+- **Managed marker blocks (`# BEGIN MyPlugin` … `# END MyPlugin`) need line-anchored strip
+  regexes.** If one marker name is a string **prefix** of another ("MyPlugin" vs "MyPlugin
+  Hardening"), an unanchored regex matches the wrong block and swallows content between them.
+  Anchor the marker lines (`[ \t]*\R` after BEGIN, `[ \t]*(?:\R|$)` after END) — and remove
+  EVERY block you wrote on deactivation, not just the first.
 
 ---
 
@@ -251,6 +288,17 @@ exam app).
   back-end logic) needs no bump — bumping forces every visitor to re-download all assets for
   nothing. Conversely, CSS/JS changes are **invisible without** a version bump (it is the
   enqueue cache-buster).
+- **Every stylesheet edit must hit BOTH `.css` and `.min.css`.** Production enqueues the minified
+  file (the unminified one only under `SCRIPT_DEBUG`), so a change applied only to `.css` ships
+  invisible. After editing, grep **both** files for the new selector, then bump the version
+  constant.
+- **Verify the zip's internal path separators are FORWARD slashes.** Windows PowerShell 5.1's
+  `Compress-Archive` writes **backslash** entry names (`slug\main.php`); Linux treats `\` as an
+  ordinary filename character, so WordPress extracts flat files with no plugin folder →
+  **"plugin does not exist"** on upload. Pack with a .NET 5+ tool (pwsh 7+) and, after packing,
+  assert an entry named `slug/main-file.php` (forward slash) exists. On a cloud-synced folder
+  (OneDrive/Dropbox) a just-written zip can briefly vanish mid-sync — re-create and re-verify if
+  it disappears.
 - **Screenshots, banner, and icon are wp.org SVN `/assets/` files — NOT part of the plugin zip.**
   Name screenshots `screenshot-1.png`, `screenshot-2.png`, … each with a matching caption in
   `readme.txt == Screenshots ==`. Banner (`banner-772x250` / `banner-1544x500`) and icon

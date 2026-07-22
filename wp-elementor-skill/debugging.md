@@ -130,6 +130,40 @@ own code is **0 findings** before every submission *and* every update (PC auto-s
 Oct 2025). JSON output is grouped under `FILE:` headers — parse JSON, not CSV (commas in messages
 break naive splitting).
 
+### `$wpdb` sniffs & suppression mechanics — from real review rounds
+
+Every item below cost a review round on a live wp.org submission:
+
+- **Single-line `// phpcs:ignore` is unreliable on DB code — use the block form.** For any
+  `$wpdb->…` call, wrap with `// phpcs:disable RuleA, RuleB` … `// phpcs:enable RuleA, RuleB`.
+  Single-line ignores repeatedly failed to suppress `DirectDatabaseQuery.*` on
+  `get_col()`/`DESCRIBE` lines; the block form always works.
+- **`$wpdb->prepare( $built_sql, $bind_array )` still trips
+  `WordPress.DB.PreparedSQL.NotPrepared`** when the first argument is a *built variable* rather
+  than a string literal — even though the call is correctly prepared. No dynamic query can satisfy
+  the sniff: include `PreparedSQL.NotPrepared` in the disable block with a **true** justification
+  ("identifiers are schema-whitelisted, values are bound").
+- **A valid `prepare()` needs at least one placeholder.** `prepare( $sql )` with no `%s`/`%d` is
+  the "missing argument 2 for wpdb::prepare" anti-pattern — guarantee one (e.g. an always-present
+  `LIMIT %d`).
+- **List EVERY sniff that fires, not just the obvious one.** A single direct `$wpdb` call can trip
+  `DirectDatabaseQuery.DirectQuery`, `.NoCaching`, `.SchemaChange` (any DDL),
+  `PreparedSQL.InterpolatedNotPrepared` **and**
+  `PluginCheck.Security.DirectDB.UnescapedDBParameter` — each must be named in the disable block
+  or it still reports.
+- **Exception messages are "output".** `throw new RuntimeException( "… $var" )` flags
+  `EscapeOutput.ExceptionNotEscaped` — wrap the message (or its interpolated parts) in
+  `esc_html()`.
+- **Core-private functions are forbidden.** E.g. `wp_get_sidebars_widgets()` is `@access private`
+  — use `apply_filters( 'sidebars_widgets', get_option( 'sidebars_widgets', [] ) )` instead (and
+  the re-applied CORE filter then needs a justified `NonPrefixedHooknameFound` ignore).
+- **`Requires at least` is a hard compatibility gate.** Plugin Check's
+  `wp_function_not_compatible_with_requires_wp` is an ERROR keyed on the header —
+  `function_exists()` guards do **NOT** satisfy it. If you call
+  `str_starts_with()`/`str_contains()` (WP 5.9+ polyfills) or `wp_register_ability()` (WP 6.9+),
+  set the header to the real floor. `Tested up to` must equal the current WP major or the readme
+  check errors.
+
 ---
 
 ## 2. Runtime WordPress debugging
@@ -230,3 +264,14 @@ prevent wasted hours:
 - **When a check fails, suspect the check before the artifact.** Mis-scoped regex or byte-slicing
   multibyte UTF-8 (`head -c`/`tail -c` cutting a character mid-byte) produces confident false
   alarms. Verify the harness (paths, encodings, regex), then the file.
+
+### Not every security-scanner finding is a bug (OWASP ZAP triage)
+
+Triage scanner output into four buckets before "fixing" anything — all four from one real ZAP run:
+
+| Bucket | Real example | Action |
+|---|---|---|
+| **Real** | `X-Content-Type-Options: nosniff` missing | Fix — add to ALL plugin responses |
+| **False positive** | "Debug Error Message" matched the literal words "PHP error log" in a tool *description* string | Document it — scanners substring-match benign doc text |
+| **Intentional** | `Access-Control-Allow-Origin: *` on public OAuth discovery docs only (no secrets; the sensitive endpoint keeps scoped CORS) | Keep the split; explain why |
+| **Environmental** | `X-Powered-By: PHP/8.x` (server `expose_php`), spec-required timestamps | Server config / protocol-required — not the plugin's bug |

@@ -111,6 +111,22 @@ function myplugin_render_settings_page(): void {
 }
 ```
 
+> ⚠️ **The `sanitize_callback` runs on EVERY `update_option()` for that option — including your
+> own programmatic writes.** `register_setting()` installs a `sanitize_option_{$option}` filter
+> that fires inside `update_option()` regardless of who calls it (whenever the registering code
+> has loaded — any `is_admin()` request, including `admin-post.php`). Three rules from a real
+> "activation silently reverted" bug:
+> - The callback must be a **pure function of `$input`** — never "preserve the current stored
+>   value" for a key, and beware side effects. A "preserving" sanitizer silently reverted the
+>   plugin's own `update_option( …, true )` on every activation click.
+> - **Runtime state does not belong in a registered settings array.** Flags your code toggles
+>   (an "enabled" state, counters, timestamps) live in their **own unregistered option**; inject
+>   them at read time if you want a single accessor.
+> - **WP-CLI smoke tests miss this bug class**: under CLI, `is_admin()` is false → the settings
+>   page never loads → `register_setting()` never ran → the filter is absent. To reproduce admin
+>   conditions, `add_filter( 'sanitize_option_myplugin_options', 'myplugin_sanitize_options' )`
+>   before testing option writes.
+
 > **Secrets in settings:** never re-render an API secret into `value="…"` — show an empty field
 > with a "leave blank to keep" sanitizer and store it encrypted (see `field-notes.md` §6).
 

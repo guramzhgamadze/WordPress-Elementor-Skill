@@ -157,7 +157,12 @@ non-breaking**; most plugin/Elementor work is unaffected.
 - **WP AI Client:** provider-agnostic PHP + JS AI API — `wp_ai_client_prompt( $prompt )->generate_text()`.
   Guard with `function_exists( 'wp_ai_client_prompt' )`.
 - **Abilities API:** `wp_register_ability()` (PHP, since WP 6.9) plus a JS counterpart in 7.0.
-  Use `'meta' => ['show_in_rest' => true]` to expose via REST.
+  Use `'meta' => ['show_in_rest' => true]` to expose via REST. Register ONLY inside the
+  **`wp_abilities_api_init`** hook (core renamed the feature plugin's `abilities_api_init`;
+  categories go on `wp_abilities_api_categories_init`) or you get `_doing_it_wrong`; a
+  `category` is required and must already be registered. Calling it also sets your real
+  `Requires at least` floor to **6.9** — Plugin Check errors on the header and
+  `function_exists()` guards don't count (see `debugging.md` §1).
 - **Connectors UI** (Settings → Connectors) for managing AI provider credentials, and a
   **Command Palette** in wp-admin.
 - **Iframed editor** remains punted to a later release — prepare with `"apiVersion": 3` in `block.json`.

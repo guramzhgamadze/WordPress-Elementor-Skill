@@ -108,6 +108,44 @@ cache-opt-out constants, excluded vendored libs).
   most common path to rejection.
 - **Fix the source, don't argue or suppress.** Reviewers grep for hand-wavy `phcs:ignore`
   justifications and known evasion patterns (see `field-notes.md` §2–3).
+- **The review is multi-round and ESCALATES.** Round 1 is commonly an automated
+  **AUTOPREREVIEW** (bot + AI-generated notes); later rounds are a **human reviewer** who catches
+  what the bot missed and looks harder each pass. Fix the whole *class* of a flagged issue and
+  self-audit for other occurrences — reviewers state "we may not share all cases."
+- **Reply in the SAME email thread** — concise, no change-logs, no AI filler. Reviewers re-review
+  the **whole plugin**, they don't diff your changes; one complete, well-tested update per round
+  beats many partial ones (each round can take days to weeks).
+
+---
+
+## Hard lines from real 2026 reviews — not spelled out in the guidelines
+
+- **No user-authored SQL over any endpoint — guards cannot fix it.** A tool running free-form
+  caller-supplied `SELECT` was rejected even with SELECT-only checks, credential-column blocks,
+  secret redaction and admin auth: free-form SQL **cannot be `prepare()`d** (the entire string is
+  the input — no placeholders to bind), and exposing arbitrary DB reads over a remote,
+  token-authenticated REST endpoint is an aggravating factor. The redesign that passed: a
+  **structured query the plugin assembles itself** — **identifiers** (table, columns) validated
+  against the **live schema** (`SHOW TABLES` / `DESCRIBE`) plus `^[a-zA-Z0-9_]+$`, then
+  interpolated in backticks; **values** bound via `$wpdb->prepare()`. Rule of thumb for ANY
+  user-input-to-DB feature: **whitelist identifiers, parameterize values.** If a feature only
+  works by running user-authored SQL, it does not belong in a wp.org plugin (ship it GitHub-only,
+  filter-gated, instead).
+- **Never use `AUTH_KEY` / auth salts outside core authentication** — not even to derive an
+  opaque one-way HMAC identifier. Reviewers flag it; generate a dedicated plugin secret option
+  instead.
+- **Document every external service in a `== External services ==` readme section** — what it is,
+  what data is sent, when, plus ToS/privacy links. Required **even when the service connects
+  INBOUND** and the plugin never phones out.
+- **Automated nonce flags on protocol endpoints are answered, not "fixed".** OAuth
+  `/authorize` + `/token` (secured by PKCE + single-use codes) legitimately have no WP nonce —
+  explain that in the reply; do **not** bolt on a meaningless nonce. (Admin-facing forms still
+  verify `check_admin_referer()` + capability, always.)
+- **A standalone HTML page (echoed + `exit`, no `wp_head()`) still may not emit a raw `<style>`
+  or `<link>`.** The pattern that satisfies both Plugin Check and the reviewer:
+  `wp_register_style()` + `wp_enqueue_style()`, then print by handle with
+  `wp_print_styles( 'my-handle' )` inside your own `<head>` — and move inline `style=""`
+  attributes into that stylesheet too.
 
 ---
 
@@ -116,9 +154,10 @@ cache-opt-out constants, excluded vendored libs).
 A compliant submission needs, in lockstep (full checklist in `field-notes.md` §10):
 - **Main file header:** `Plugin Name`, `Version`, `Requires at least`, `Requires PHP`,
   `License: GPL-2.0-or-later`, `Text Domain`, and `Requires Plugins:` if it depends on Elementor.
-- **`readme.txt`:** `Stable tag` (must match the released version), `Requires at least`,
-  `Tested up to` (a current WP version), `Requires PHP`, `License`, ≤ 5 tags, a `== Changelog ==`,
-  and an `== Upgrade Notice ==` (< 300 chars each).
+- **`readme.txt`:** `Stable tag` (must match the released version), `Requires at least` (the
+  REAL feature floor — see the compatibility-gate note in `debugging.md` §1), `Tested up to`
+  (**must equal the current WP major** or the readme check errors), `Requires PHP`, `License`,
+  ≤ 5 tags, a `== Changelog ==`, and an `== Upgrade Notice ==` (< 300 chars each).
 - **Listing assets** (`screenshot-N.png` + captions, `banner-*`, `icon-*`) live in SVN
   `/assets/`, **not** in the plugin zip.
 
