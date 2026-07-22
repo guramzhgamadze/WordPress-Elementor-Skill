@@ -10,20 +10,38 @@ place instead of being scattered across the sub-files.
 
 | Component | Version | Released |
 |---|---|---|
-| WordPress | **7.0** "Armstrong" | May 20, 2026 |
+| WordPress | **7.0.2** ("Armstrong" 7.0: May 20, 2026) | July 17, 2026 (security) |
 | PHP (recommended / minimum) | 8.3 / 7.4 | — |
-| Elementor (free + Pro) | **4.2.0** | June 5, 2026 |
-| WooCommerce | **10.8** | May 26, 2026 |
+| Elementor (free + Pro, independent versions) | **4.2.0** both | July 20, 2026 |
+| WooCommerce | **10.9.4** (10.9.0: June 23, 2026) | July 7, 2026 |
 
 **Sources:**
-- make.wordpress.org/core/2026/04/22/wordpress-7-0-release-party-updated-schedule/ (WP 7.0 → May 20)
+- wordpress.org/download/releases/ (7.0.2 · 7.0.1) · make.wordpress.org/core/2026/07/03/wordpress-7-1-release-party-schedule/ (7.1 → Aug 19, 2026)
 - make.wordpress.org/core/2026/01/09/dropping-support-for-php-7-2-and-7-3/ (PHP 7.4 minimum)
-- github.com/elementor/elementor/releases · elementor.com/pro/changelog/ (Elementor 4.2.0)
-- developer.woocommerce.com/2026/04/15/woocommerce-10-7/ · developer.woocommerce.com/2026/05/26/woocommerce-10-8-0-release/
+- wordpress.org/plugins/elementor/ + api.wordpress.org plugin info (free 4.2.0, Jul 20) · elementor.com/pro/changelog/ (Pro 4.2.0, Jul 20)
+- developer.woocommerce.com/releases/ · developer.woocommerce.com/2026/06/23/woocommerce-10-9/
 
 ---
 
 ## Audit rounds
+
+### Round 30 — July 22, 2026 — live-source currency sweep (WP 7.0.2 / Elementor 4.2.0 / WC 10.9)
+All facts verified against wordpress.org, the wp.org plugins API, elementor.com/pro/changelog,
+developer.woocommerce.com, and developers.elementor.com.
+- **Corrected a Round 21 error:** "Elementor 4.2.0 (June 5, 2026)" was wrong — free and Pro
+  were on 4.1.x then, and their version numbers are **independent**, not shared. Both actually
+  reached **4.2.0 on July 20, 2026** (free: **Atomic Grid**; Pro: **Atomic Loop** + Atomic Forms
+  enhancements). Fixed in `SKILL.md`, this file's stack table, README, and `docs/index.html`.
+- **WordPress 7.0.2** (July 17, security; 7.0.1 July 9 = 31 fixes + PHP 8.5 compat) noted in the
+  stack; **WP 7.1 scheduled for Aug 19, 2026** flagged as the next audit trigger.
+- **WooCommerce 10.8 → 10.9.4**: new `woocommerce.md` note — Store API **defers draft-order
+  creation** to near place-order time (code assuming an early draft order breaks), product
+  editor beta in its **final deprecation window** (removed in WC 11.0), Abilities/MCP domain
+  abilities for products/orders, experimental code-API + GraphQL, transactional email logging
+  in core. No HPOS or minimum-requirement changes.
+- **V4 stance re-verified today**: developers.elementor.com still documents only V3
+  `Widget_Base`; no third-party Atomic extension docs. Skill keeps targeting V3; the V4
+  awareness list now includes Atomic Grid and Atomic Loop. Plugin Check still 2.0.0 (unchanged).
 
 ### Round 29 — July 22, 2026 — second CLAUDE.md mining pass (post-review lessons)
 Re-mined the four project CLAUDE.md files that changed since the July 11 pass
@@ -204,6 +222,9 @@ Biology exam). Added only lessons the skill didn't already carry; no new files, 
   while the Real-Time Collaboration storage layer was redesigned into a **dedicated core database
   table**, replacing the rejected `wp_post_meta` / `wp_sync_storage` approach).
 - **Elementor 4.2.0** (June 5, 2026) is current; **WooCommerce 10.8** (May 26, 2026) is current.
+  *(Round 30 correction: the Elementor claim was wrong — on June 5 free/Pro were on 4.1.x;
+  both actually reached 4.2.0 on **July 20, 2026**, and free & Pro version numbers are
+  independent, not shared.)*
 - Replaced ~115 lines of WP 7.0 beta/RC/delay narration in `SKILL.md` §1 with a compact,
   durable "current stack" table + a short "what changed in WP 7.0 for devs" summary.
 - Settled forward-looking sections into shipped fact: `woocommerce.md` (WC 10.7 sync-on-read),

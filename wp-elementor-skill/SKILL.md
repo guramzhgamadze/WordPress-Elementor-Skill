@@ -130,10 +130,10 @@ Quickly assess — **only ask if the answer would change the code**:
 
 | Component | Version | Notes |
 |---|---|---|
-| **WordPress** | **7.0+** | "Armstrong", released May 20, 2026. Minimum PHP raised to **7.4** (7.2/7.3 dropped — sites still on them stay pinned to 6.9.x). No multisite assumed. |
+| **WordPress** | **7.0+** | "Armstrong", released May 20, 2026; current point release **7.0.2** (security, Jul 17, 2026). Minimum PHP raised to **7.4** (7.2/7.3 dropped — sites still on them stay pinned to 6.9.x). No multisite assumed. **WP 7.1 is scheduled for Aug 19, 2026.** |
 | **PHP** | **8.3** recommended | 7.4 = WP 7.0 minimum. 8.4 / 8.5 = "beta support" (possible deprecation notices). 8.2 fully compatible but no longer the recommended default. |
-| **Elementor (free + Pro)** | **4.2+** | Separate plugins, shared version number. 4.0.0 (Mar 30, 2026) made the Atomic Editor stable + default for new installs; 4.2.0 (Jun 5, 2026) is current. **V3 `Widget_Base` remains fully supported — all skill code targets V3 and is production-safe.** |
-| **WooCommerce** | **10.8+** | HPOS default-on since 8.2. 10.7 (Apr 14, 2026) disabled HPOS "sync on read" by default — see woocommerce.md. |
+| **Elementor (free + Pro)** | **4.2+** | Separate plugins with **independent version numbers**. 4.0.0 (Mar 30, 2026) made the Atomic Editor stable + default for new installs; **free and Pro both reached 4.2.0 on Jul 20, 2026** (free: Atomic Grid; Pro: Atomic Loop). **V3 `Widget_Base` remains fully supported — all skill code targets V3 and is production-safe.** |
+| **WooCommerce** | **10.9+** | HPOS default-on since 8.2. 10.7 (Apr 14, 2026) disabled HPOS "sync on read" by default; 10.9 (Jun 23, 2026) defers Store API draft-order creation — see woocommerce.md. |
 
 **Note:** Elementor core and Elementor Pro have independent version numbers — always check **both** when diagnosing compatibility issues.
 
@@ -175,21 +175,25 @@ wordpress.org/about/requirements/_
 > 8.4 (WP 6.7+) and 8.5 (WP 6.9+) carry a "beta support" label (possible deprecation notices).
 > Source: make.wordpress.org/core/handbook/references/php-compatibility-and-wordpress-versions/
 
-> ✅ **Elementor 4.x status (current: 4.2.0, June 5, 2026):** Elementor 4.0.0 (Mar 30, 2026,
-> free + Pro) made the **Atomic Editor stable and the default for new installs** and added
-> Atomic Forms, Pro Interactions, and Component creation. Updating to 4.x leaves **existing
-> sites untouched** — V3 widgets and V4 Atomic Elements coexist on the same page; Atomic
-> features are toggled at WP Admin → Elementor → Editor → Settings. The V4 Atomic Element PHP
-> extension API is stable, but third-party extension docs are still being finalized — so
+> ✅ **Elementor 4.x status (current: 4.2.0 free AND Pro, July 20, 2026):** Elementor 4.0.0
+> (Mar 30, 2026, free + Pro) made the **Atomic Editor stable and the default for new installs**
+> and added Atomic Forms, Pro Interactions, and Component creation. Updating to 4.x leaves
+> **existing sites untouched** — V3 widgets and V4 Atomic Elements coexist on the same page;
+> Atomic features are toggled at WP Admin → Elementor → Editor → Settings. The V4 Atomic
+> Element PHP extension API is stable, but third-party extension docs are still being finalized
+> (re-verified July 22, 2026: developers.elementor.com still documents only V3) — so
 > **continue using V3 `Widget_Base`** for all third-party widgets. It is the correct,
 > production-safe API and all skill code targets it.
 >
 > **V4 Atomic Elements that now ship by default (awareness only — not third-party-buildable yet):**
-> Div Block & Flexbox Container (layout); Atomic Heading, Paragraph, Image, Button, Video, SVG;
-> **Atomic Tabs**; and **Atomic Forms** (Pro) with composable fields — Label, Input, Textarea,
+> Div Block & Flexbox Container (layout); **Atomic Grid** — advanced row/column layouts (free
+> 4.2.0, Jul 20, 2026); Atomic Heading, Paragraph, Image, Button, Video, SVG;
+> **Atomic Tabs**; **Atomic Forms** (Pro) with composable fields — Label, Input, Textarea,
 > Checkbox, Submit, plus Radio, Select, Date Picker, Time Picker, and File Upload (added in
-> Pro 4.1.0, May 26, 2026). These are end-user elements; building **custom** atomic elements
-> still awaits the finalized V4 extension docs — keep targeting V3 `Widget_Base` until then.
+> Pro 4.1.0, May 26, 2026); and **Atomic Loop** — dynamic content layouts, the V4 counterpart
+> of the Pro Loop Grid (Pro 4.2.0, Jul 20, 2026). These are end-user elements; building
+> **custom** atomic elements still awaits the finalized V4 extension docs — keep targeting V3
+> `Widget_Base` until then.
 > Source: elementor.com/products/website-builder/v4-faq/ ·
 > developers.elementor.com/elementor-editor-4-0-developers-update/ ·
 > elementor.com/pro/changelog/ · github.com/elementor/elementor/releases
