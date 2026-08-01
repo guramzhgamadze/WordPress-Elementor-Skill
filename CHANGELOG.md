@@ -25,6 +25,70 @@ place instead of being scattered across the sub-files.
 
 ## Audit rounds
 
+### Round 31 — July 27, 2026 — editor panel tabs, dynamic-tag parents & the no-default colour rule
+Three pieces of field-verified work, each from building a real plugin against a live Elementor
+4.2.0 install rather than from documentation.
+
+**Editor panel tabs** — sourced from Elementor 4.2.0's own shipped, unminified package
+(`assets/js/packages/editor-elements-panel/editor-elements-panel.js`) and from building a working
+panel tab end-to-end.
+- **New `elementor-extending.md` §5 — "Add a TAB to the editor's Elements panel."** Elementor 4.x
+  exposes an official `window.elementorV2.editorElementsPanel.injectTab({ id, label, component,
+  position })`, which performs the `panel/elements/regionViews` filter, `addTab()` and the nav
+  button in one call and renders a React component through a Portal into
+  `#elementor-panel-elements-wrapper`. Script handle: `elementor-v2-editor-elements-panel`.
+  Includes the PHP enqueue (`elementor/editor/before_enqueue_scripts`, capability-gated on the
+  post in the editor URL) and a defensive registration pattern that polls briefly and then fails
+  **quietly** — an exception here takes out the entire panel.
+- **Explicit anti-pattern recorded:** do *not* buffer `elementor/editor/footer` and
+  `preg_replace()` a tab button into Elementor's rendered markup (a major SEO plugin does this,
+  matching `data-tab="global"` and `elementor-component-tab`, and ships a fallback for when the
+  regex fails). It breaks silently on any class rename; `injectTab()` removes the need.
+- **Two traps that pass every linter and only appear in a live editor**, now documented:
+  (1) anything the panel's REST route calls **must live outside the `is_admin()` include block** —
+  a REST request is not an admin request, so an admin-only rendering helper fatals with
+  "undefined function" while the meta box using it works; (2) **the Elementor 4.x panel is LIGHT,
+  not dark** — with the real 4.2 token values tabled, including that `--e-a-btn-bg-primary` is a
+  pale pink (`#f3bafd`) expecting dark text, and that white-alpha tracks are invisible on it. Use
+  neutral grey alpha and mid-tone semantic colours, and verify via computed styles.
+- Router (`SKILL.md`) sub-file map and §4 pattern index updated; `elementor-extending.md` sections
+  renumbered 5→6, 6→7, 7→8 with the internal `§7`→`§8` cross-reference corrected; the JS and PHP
+  hooks quick-reference tables gained the panel-tab entries.
+
+**Dynamic-tag parents & empty-value discipline** (`elementor-patterns.md`) — from a real
+Dynamic Tags plugin:
+- Documented the **two dynamic-tag parents** and that `get_content_type()` is `final` on both:
+  `\Elementor\Core\DynamicTags\Tag` ('ui' — Elementor output-buffers `render()`) for
+  TEXT/URL/COLOR/NUMBER, and `\Elementor\Core\DynamicTags\Data_Tag` ('plain' — returns
+  `get_value()`) for **IMAGE/MEDIA/GALLERY**. An image tag written as `extends Tag` with a
+  `get_value()` looks correct and **silently returns nothing** (the field appears empty, no error).
+  The parents are incompatible, so shared field logic goes in a **trait**; `Tag::WRAPPED_TAG`
+  defaults `false`.
+- **Empty image/gallery fields must return an EMPTY value — never
+  `Utils::get_placeholder_image_src()`.** Elementor's image widget bails on an empty `url`, so a
+  placeholder paints a grey box on every unset slot (worst on repeated optional slots, where an
+  `absint`-sanitised field stores `0`). Pro's `ACF_Image` is the reference: empty by default,
+  opt-in `fallback` MEDIA control. **Carousels/sliders accept only the GALLERY category** — an
+  IMAGE tag can't fill them; gallery tags extend `Data_Tag` and return a flat `[['id'=>int]]`
+  list (`id` mandatory — verified against the Pro Gallery, free Gallery/Carousel and Pro
+  `ACF_Gallery` consumers, not assumed).
+
+**Colour-control defaults — the "no default you can't switch off" rule** (`SKILL.md` §5 +
+`field-notes.md` §4):
+- A COLOUR control with a `'default'` can never be turned off — Elementor emits it exactly like a
+  user value and clearing the swatch restores it. **Core carries no colour defaults** (verified in
+  `includes/widgets/heading.php`): resting look belongs in your stylesheet's `var(--token, …)`;
+  **state** colours (hover/active/selected/current) are **empty** controls that write a **direct
+  CSS property** (never a custom property with a fallback), and your CSS must leave that state
+  colour-free — otherwise "empty" still paints the fallback.
+- Five more live-editor field notes now in §4: theme form-control selectors
+  (`input[type="search"]:focus`, 0-2-1) outrank bare classes — **element-qualify** interactive
+  selectors; `container-type: inline-size` can inflate a wrapper to **~63,000px** at narrow
+  viewports (prefer an `@media` breakpoint + `vw`-based `clamp()` over `cqi`); **guard each
+  `register_taxonomy()` independently** of a `post_type_exists()` early-return; renaming a taxonomy
+  is one `wp_term_taxonomy` column + `clean_taxonomy_cache()`; and `accent-color` on a range input
+  is dead once a theme sets `appearance: none` — style the `::-webkit-*` / `::-moz-*` pseudos.
+
 ### Round 30 — July 22, 2026 — live-source currency sweep (WP 7.0.2 / Elementor 4.2.0 / WC 10.9)
 All facts verified against wordpress.org, the wp.org plugins API, elementor.com/pro/changelog,
 developer.woocommerce.com, and developers.elementor.com.

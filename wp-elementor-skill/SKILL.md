@@ -30,7 +30,7 @@ for the task at hand.
 | JavaScript standards, enqueue API, defer/async, wp_add_inline_script | **js-css-standards.md** |
 | CSS standards, BEM, design tokens, Elementor CSS selectors | **js-css-standards.md** |
 | Elementor custom widget, Dynamic Tags, Loop Grid, Form actions, Theme Builder conditions | **elementor-patterns.md** |
-| Elementor extension points — custom **form fields**, **theme locations**, injecting controls into native widgets, Finder/context-menu, hooks reference, deprecations | **elementor-extending.md** |
+| Elementor extension points — custom **form fields**, **theme locations**, injecting controls into native widgets, **adding a TAB to the editor's Elements panel**, Finder/context-menu, hooks reference, deprecations | **elementor-extending.md** |
 | WooCommerce HPOS, order API, template overrides, Loop Grid for products | **woocommerce.md** |
 | REST API endpoints, schema, permission callbacks | **rest-api.md** |
 | Off-canvas UI, off-canvas accessibility, focus trap | **offcanvas-ui.md** |
@@ -288,6 +288,7 @@ activate plugin, clear Elementor cache, etc.
 | Theme Builder custom location | `register_location` + `elementor_theme_do_location()` | elementor-extending.md |
 | Add a control to a NATIVE Elementor widget | `elementor/element/{el}/{section}/before_section_end` | elementor-extending.md |
 | Filter a native widget's output | `elementor/widget/render_content` filter | elementor-extending.md |
+| Add a TAB to the editor panel (like an SEO plugin) | `elementorV2.editorElementsPanel.injectTab()` + `elementor/editor/before_enqueue_scripts` | elementor-extending.md |
 | WooCommerce HPOS compatibility | `FeaturesUtil::declare_compatibility()` + `wc_get_order()` | woocommerce.md |
 | WooCommerce loop | Loop Grid + `elementor/query/` filter | woocommerce.md |
 | Custom REST endpoint | `register_rest_route()` + schema callback in plugin | rest-api.md |
@@ -358,6 +359,19 @@ activate plugin, clear Elementor cache, etc.
 The only exceptions are structural CSS (display, position, overflow) required for the widget
 layout to function at all — and even these should use controls when there is a user-facing
 choice (e.g. flex-direction toggle).
+
+> ⚠️ **"No hardcoded visuals" does NOT mean "put a `default` on every control."**
+> Elementor emits a `default` exactly like a user-set value, so a colour default paints on every
+> install and clearing the swatch only restores it — the user cannot turn it off. **Elementor core
+> carries no `default` on colour controls at all** (`includes/widgets/heading.php`: `title_color`
+> uses a `'global'` reference; `title_hover_color` is entirely empty). Follow that split:
+> - **Sizes, spacing, alignment, toggles, tags, labels** → give a real `'default'`.
+> - **Colours** → leave empty. Put the resting look in your stylesheet's `var(--token, fallback)`
+>   and let the control override it. For **state** colours (hover / active / selected / current)
+>   also write a **direct CSS property**, never a custom property, and keep that state
+>   **colour-free in your CSS** — otherwise "empty" still paints the fallback.
+>
+> See `field-notes.md` §4 for the full trap, plus the theme-specificity and `accent-color` cases.
 
 ### Required Controls Checklist — Apply to Every Widget
 

@@ -271,6 +271,103 @@ add_action( 'elementor/widgets/register', function( \Elementor\Widgets_Manager $
 > Always use the class constant (`Module::TEXT_CATEGORY`) not the raw string — the string
 > values are internal and could change. Source: `elementor/modules/dynamic-tags/module.php`
 
+> ⚠️ **Pick the right PARENT or the tag silently returns nothing.** There are two, and the
+> choice is dictated by the category:
+>
+> | Parent | `get_content_type()` | How Elementor resolves it | Use for |
+> |---|---|---|---|
+> | `\Elementor\Core\DynamicTags\Tag` | `'ui'` (**`final`**) | `ob_start(); $this->render();` | TEXT, URL, COLOR, NUMBER |
+> | `\Elementor\Core\DynamicTags\Data_Tag` | `'plain'` (**`final`**) | `return $this->get_value( $options );` | **IMAGE / MEDIA / GALLERY** |
+>
+> An image tag written as `extends Tag` with a `get_value()` returning `['id','url']` looks
+> completely correct and **never runs**: `get_content_type()` is `final`, so the tag stays
+> 'ui', Elementor output-buffers `render()`, and `get_value()` is dead code. The image control
+> receives an empty string and the field appears to have no value — with no error anywhere.
+> Symptom to recognise: *"dynamic fields can't pull the images"* while text tags work fine.
+>
+> `Data_Tag::get_value()` is declared `abstract protected`, so match that visibility. Return
+> `[ 'id' => (int) $attachment_id, 'url' => (string) $url ]`, and fall back to
+> `\Elementor\Utils::get_placeholder_image_src()` when the attachment is gone — otherwise a
+> deleted image emits a broken `src`.
+>
+> Because the two parents are incompatible, put shared field-lookup logic in a **trait**, not a
+> common base class:
+> ```php
+> trait My_Tag_Fields { /* register_controls(), field_value(), get_group() … */ }
+> abstract class My_Tag_Base extends \Elementor\Core\DynamicTags\Tag { use My_Tag_Fields; }
+> class My_Image_Tag extends \Elementor\Core\DynamicTags\Data_Tag { use My_Tag_Fields; }
+> ```
+> Sanity check for `Tag`-based tags: `Tag::WRAPPED_TAG` defaults to **`false`**, so URL and
+> COLOR output is not span-wrapped. If a subclass sets it `true`, a colour or URL tag returns
+> HTML and the CSS value breaks.
+
+> ⚠️ **An empty image field must return an EMPTY value — never a placeholder.**
+> `Utils::get_placeholder_image_src()` looks like a helpful fallback and is the wrong call:
+> Elementor's image widget opens with
+> `if ( empty( $settings['image']['url'] ) ) { return; }` (`includes/widgets/image.php`), so an
+> empty `url` is precisely what makes it render nothing. Return a placeholder instead and every
+> unset field paints a grey Elementor placeholder on the front end, which the site owner then
+> has to hide with custom CSS.
+>
+> This bites hardest on **repeated optional slots** — `cert_img_1..4`, gallery slots, secondary
+> logos. A field sanitised with `absint` stores **`0`** when nothing is chosen, and `0` is not an
+> image; an instructor with two certificates renders two real images and two placeholders.
+>
+> **Elementor Pro's own `ACF_Image` tag is the reference implementation**
+> (`elementor-pro/modules/dynamic-tags/acf/tags/acf-image.php`):
+> ```php
+> $image_data = [ 'id' => null, 'url' => '' ];        // starts EMPTY
+> // …resolve the field…
+> if ( empty( $value ) && $this->get_settings( 'fallback' ) ) {
+>     $value = $this->get_settings( 'fallback' );      // only a USER-CHOSEN fallback
+> }
+> if ( ! empty( $value ) && is_array( $value ) ) { /* fill id + url */ }
+> return $image_data;                                  // empty when nothing is set
+> ```
+> It also registers a `Controls_Manager::MEDIA` control named `fallback`, so the *user* decides
+> whether an empty field shows something. Copy that shape: empty by default, opt-in fallback.
+> Treat a set id whose attachment was deleted the same way — asserting an image exists when it
+> does not is the bug, not the cure.
+>
+> Same principle as the colour-control rule in **SKILL.md §5**: do not invent a default the user
+> cannot switch off. If the platform ships a reference implementation for the thing you are
+> building, read it before inventing behaviour.
+
+> 🎠 **Carousels and sliders accept ONLY the GALLERY category — an IMAGE tag cannot fill them.**
+> So a set of separate single-image fields (`cert_img_1..4`, `logo_a`/`logo_b`, gallery slots on a
+> repeater) is unusable in a slider until you add a tag that synthesises them into one gallery.
+> `Module::GALLERY_CATEGORY` is defined in **free** Elementor, so this needs no Pro. Gallery tags
+> extend **`Data_Tag`**, same as image tags, for the same `get_content_type()` reason.
+>
+> **Return a flat list of `array( 'id' => int )`.** `id` is mandatory — verified against the
+> consumers, not assumed from one example:
+>
+> | Consumer | How it reads each item |
+> |---|---|
+> | Elementor **Pro** Gallery | `wp_get_attachment_image_src( $item['id'], … )` — **id only, no url fallback** |
+> | free Image Gallery | `wp_list_pluck( $items, 'id' )` |
+> | free Image Carousel | `Group_Control_Image_Size::get_attachment_image_src( $item['id'], … )`, reads `$item['url']` **only if that returns false** |
+> | Pro `ACF_Gallery` (reference) | returns `[ 'id' => $image['ID'] ]` |
+>
+> Captions, alt text and lightbox links all key off `id` too, so an id-less item degrades badly.
+> Adding `url` alongside `id` is harmless — no first-party widget prefers it over its own sized
+> version — and is worth doing defensively, because a third-party carousel that naively reads
+> `$item['url']` renders blank slides otherwise.
+>
+> Skip empty slots and ids whose attachment no longer resolves, and return an **empty array** when
+> there is nothing: a carousel then renders nothing instead of blank slides. Derive the slot list
+> from your field schema rather than hardcoding it, so adding a fifth slot needs no tag change.
+>
+> **Method worth repeating:** the reference implementation tells you what is *sufficient*; the
+> consumers tell you what is *required*. ACF's gallery tag returns id-only, which is sufficient —
+> but only reading Pro's Gallery widget proves `id` is mandatory with no fallback, and only
+> surveying third-party widgets justifies carrying `url` as well. Check both ends.
+>
+> Also worth checking before you build: whether the system you are replacing solved the problem at
+> all. `ACF_Gallery::get_supported_fields()` returns `['gallery']`, so on a site whose field group
+> has only `image` fields it offers an empty picker — the capability never existed, and you are
+> adding it rather than porting it.
+
 ```php
 // ✅ Type hint \Elementor\Core\DynamicTags\Manager (different from Widgets_Manager)
 add_action( 'elementor/dynamic_tags/register', function( \Elementor\Core\DynamicTags\Manager $manager ) {

@@ -137,6 +137,64 @@ exam app).
   effect (e.g. focus-glow spread *and* colour) needs **two** controls feeding one selector. Use
   `CHOOSE` + `selectors_dictionary` for non-numeric CSS toggles (not `SELECT`). URL controls
   return an **array** (`['url' => …, 'is_external' => …]`), not a string — read `['url']`.
+- **A COLOUR control with a `default` can never be switched off.** Elementor emits a control's
+  `default` exactly like a user-set value, so `'default' => '#6B4C9A'` paints that colour on every
+  install and clearing the swatch just restores it. Users read that as "the widget forces a colour
+  on me." **Elementor core carries no `default` on colour controls at all** — check
+  `includes/widgets/heading.php`: `title_color` uses `'global' => ['default' => Global_Colors::COLOR_PRIMARY]`
+  (a *reference* the user can clear) and `title_hover_color` is **completely empty — no default, no
+  global**. Empty ⇒ nothing emitted ⇒ the stylesheet's resting value stands. So: **resting look
+  lives in your CSS; state colours (hover / active / selected / current) are empty controls.** Two
+  consequences that are easy to miss:
+  - **State colours must write a direct CSS property, never a custom property.** `--my-btn-bg:{{VALUE}}`
+    read back as `var(--my-btn-bg, red)` means the fallback paints whenever the control is empty —
+    "default" becomes "red", not "off". `'{{WRAPPER}} .btn:hover' => 'background:{{VALUE}};'` emits
+    *no rule at all* when empty, which is the only way default means off.
+  - **Then your stylesheet must not declare that state either.** Leaving
+    `.btn:hover { background: var(--my-btn-bg, rgba(255,255,255,.5)) }` in the CSS re-introduces the
+    same problem from the other side. Keep hover/selected rules **colour-free** — carry the state
+    with `font-weight` or an inset highlight so the control genuinely owns every colour.
+- **Theme form-control selectors outrank your bare classes.** `input[type="search"]:focus` is
+  **0-2-1** (element + attribute + pseudo-class); your `.my-search:focus` is **0-2-0** — the theme
+  wins. Astra ships exactly that rule and repaints focused inputs its own blue, which then persists
+  until blur and reads as a bug in *your* widget. Same trap on `input[type="range"]::-webkit-slider-thumb`
+  (0-1-1 beats `.my-range::-webkit-slider-thumb` at 0-1-0). Fix by **element-qualifying every
+  interactive-control selector** — `input[type="search"].my-search:focus` (0-3-1),
+  `.my-widget button.my-chip:hover` — which still sits far below Elementor's generated
+  `.elementor-{id} .elementor-element.elementor-element-{id} .sel` (0-4-0+), so the controls keep
+  winning. Reach for `!important` only after this fails; it would also lock the user's controls out.
+- **`container-type: inline-size` can inflate the widget wrapper to tens of thousands of pixels.**
+  Inside Elementor's nested flex containers (`.e-con` → `.e-con-inner` → `.elementor-element`),
+  Chromium computed the widget wrapper at **62,926px against 4,867px of real content** — ~58,000px
+  of blank page below the widget — but **only at narrow viewports**; desktop was exact. The
+  giveaway is a parent taller than its only child. Bisect by setting `container-type: normal`
+  inline: if the height collapses, that is it. Nothing else fixed it — not `min-height: 0`,
+  `display: flow-root`, `contain-intrinsic-block-size`, `align-self: stretch`, nor removing the
+  flex context from the wrapper — and neither the `@container` rules nor the `cqi` units were
+  involved (neutralising both changed nothing). Unless you genuinely need the widget to respond
+  to *its own* width rather than the viewport's, prefer a plain `@media` query at Elementor's
+  breakpoint (767px mobile / 1024px tablet) and a `vw`-based `clamp()` instead of `cqi`.
+- **Guard independent registrations independently.** A CPT-registration function that bails with
+  `if ( post_type_exists( $slug ) ) { return; }` — so a page-builder plugin like CPT UI can stay
+  the owner — will also skip every `register_taxonomy()` call after it. On every site where the
+  other plugin owns the post type the taxonomy is then never registered at all, and each
+  `wp_get_object_terms()` returns `WP_Error( 'invalid_taxonomy' )`. Devastating right after a
+  migration that moved terms onto that taxonomy. Guard each registration with its own
+  `post_type_exists()` / `taxonomy_exists()` check.
+- **Renaming a taxonomy is one column.** `UPDATE wp_term_taxonomy SET taxonomy = 'new' WHERE
+  taxonomy = 'old'` is the whole migration: `wp_term_relationships` points at `term_taxonomy_id`,
+  which does not change, so every object keeps exactly the terms it had. Follow with
+  `clean_taxonomy_cache()` for both names (term caches key on the taxonomy name, so the old one
+  lingers as a phantom) and a rewrite flush if the archive slug changed.
+- **`accent-color` on a range input is dead the moment a theme sets `appearance: none`.** It only
+  tints *native* track/thumb rendering, so a control that writes `accent-color` is inert and the
+  slider renders as a bare rectangle. Style the parts explicitly and element-qualified:
+  `::-webkit-slider-runnable-track` + `::-webkit-slider-thumb` (needs its own
+  `-webkit-appearance:none` and a `margin-top` to re-centre it on a thin track) and
+  `::-moz-range-track` / `::-moz-range-progress` / `::-moz-range-thumb`. WebKit has **no**
+  `::-moz-range-progress` equivalent — draw the filled portion as a background sized from a
+  `--pct` custom property the script updates on `input`. Keep the input itself at a 44px hit
+  height with a transparent background and let the visible track be thin.
 
 ---
 

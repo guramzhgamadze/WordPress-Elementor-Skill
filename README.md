@@ -81,7 +81,21 @@ Once installed as a skill in Claude:
 This skill is audited against official live sources after every significant release.
 The full round-by-round history lives in [`CHANGELOG.md`](./CHANGELOG.md).
 
-**Latest — Round 30 (July 22, 2026):** Live-source currency sweep. **WordPress 7.0.2** (security,
+**Latest — Round 31 (July 27, 2026):** Three field-verified pieces from real plugin work.
+**(1) Editor panel tabs** — new `elementor-extending.md` §5 documents Elementor 4.x's official
+`elementorV2.editorElementsPanel.injectTab()` for adding your own tab beside Widgets / Components /
+Globals (sourced from Elementor 4.2.0's shipped package, built end-to-end), plus the
+regex-into-`elementor/editor/footer` anti-pattern and two linter-invisible traps: REST-called
+helpers must live outside the `is_admin()` block, and the 4.x panel is **light**, with real token
+values tabled. **(2) Dynamic-tag parents** — `elementor-patterns.md` now covers the `Tag` vs
+`Data_Tag` split (an image tag on the wrong parent silently returns nothing) and the rule that
+empty image/gallery fields must return an empty value, never a placeholder. **(3) The no-default
+colour rule** — `SKILL.md` §5 + `field-notes.md` §4: a colour control with a `default` can't be
+switched off, so state colours are empty controls writing direct CSS; plus five more live-editor
+gotchas (theme selector specificity, a `container-type` height blow-up, independent taxonomy
+guards, taxonomy renames, dead `accent-color`).
+
+**Round 30 (July 22, 2026):** Live-source currency sweep. **WordPress 7.0.2** (security,
 July 17), **Elementor free + Pro both at 4.2.0** (July 20 — free adds Atomic Grid, Pro adds Atomic
 Loop; this also corrected a Round 21 error that had dated 4.2.0 to June 5), and **WooCommerce
 10.9.4** — with new `woocommerce.md` notes on the Store API's deferred draft-order creation and

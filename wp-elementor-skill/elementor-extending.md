@@ -14,7 +14,7 @@
 > custom widgets. Atomic Elements are documented only as a *data structure*
 > (developers.elementor.com/docs/data-structure/atomic-elements/), not a creation API. **Keep
 > building with V3 `Widget_Base`** — see SKILL.md §1. (Newer 4.x **control types** like
-> `VISUAL_CHOICE` are usable from V3 widgets today — see §7 below.)
+> `VISUAL_CHOICE` are usable from V3 widgets today — see §8 below.)
 
 ---
 
@@ -181,7 +181,128 @@ elementor.hooks.addFilter( 'elements/widget/contextMenuGroups', ( groups, view )
 
 ---
 
-## 5. Hooks quick-reference (the extension surface)
+## 5. Add a TAB to the editor's Elements panel (Widgets / Components / Globals / **yours**)
+
+The panel tab an SEO or content plugin wants: a first-class entry beside **Widgets**,
+**Components** and **Globals**, rendering your own UI inside the editor. Elementor **4.x ships an
+official API for this** — use it; do not scrape the panel markup (see the warning below).
+
+```js
+// Elementor 4.x — the supported way. Registers the tab, its panel route AND the nav button.
+window.elementorV2.editorElementsPanel.injectTab( {
+    id:        'myplugin',          // becomes the route  panel/elements/myplugin
+    label:     'My Plugin',         // nav button text
+    component: MyPanelComponent,    // a REACT component (window.React is global in the editor)
+    position:  3,                   // optional index in the nav; omit to append
+} );
+```
+
+`injectTab()` internally does all three things the old manual recipe needed — the
+`panel/elements/regionViews` filter (with an empty legacy Marionette view as a placeholder),
+`$e.components.get( 'panel/elements' ).addTab()`, and building the nav `<button>` — then renders
+your component through a React **Portal** into `#elementor-panel-elements-wrapper`.
+
+> **Verify against the shipped source, not memory.** This API is exported from Elementor's own
+> package — read
+> `elementor/assets/js/packages/editor-elements-panel/editor-elements-panel.js` in the installed
+> plugin (it is unminified) if behaviour ever changes. Confirmed present in **4.2.0**; the script
+> handle is **`elementor-v2-editor-elements-panel`**.
+
+**PHP side — enqueue into the editor only:**
+```php
+add_action( 'elementor/editor/before_enqueue_scripts', 'myplugin_enqueue_panel' );
+
+function myplugin_enqueue_panel(): void {
+    // The editor URL carries the post id; gate everything on it.
+    $post_id = (int) get_the_ID();
+    if ( $post_id <= 0 && isset( $_GET['post'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- identifying the open post, not processing a submission.
+        $post_id = (int) $_GET['post'];
+    }
+    if ( $post_id <= 0 || ! current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+
+    $deps = [ 'react', 'react-dom' ];
+    // Only declare Elementor's handle when it exists, so an older build can't break the enqueue.
+    if ( wp_script_is( 'elementor-v2-editor-elements-panel', 'registered' ) ) {
+        $deps[] = 'elementor-v2-editor-elements-panel';
+    }
+
+    wp_enqueue_script( 'myplugin-panel', MYPLUGIN_URL . 'assets/panel.js', $deps, MYPLUGIN_VERSION, true );
+    wp_enqueue_style(  'myplugin-panel', MYPLUGIN_URL . 'assets/panel.css', [], MYPLUGIN_VERSION );
+
+    wp_add_inline_script(
+        'myplugin-panel',
+        'window.myPluginPanel = ' . wp_json_encode( [
+            'postId'  => $post_id,
+            'restUrl' => esc_url_raw( rest_url( 'myplugin/v1/' ) ),
+            'nonce'   => wp_create_nonce( 'wp_rest' ),   // send as X-WP-Nonce
+        ] ) . ';',
+        'before'
+    );
+}
+```
+
+**Register defensively — a thrown error kills the whole panel:**
+```js
+function injectTab() {
+    var api = window.elementorV2 && window.elementorV2.editorElementsPanel;
+    if ( ! api || 'function' !== typeof api.injectTab ) { return false; }
+    api.injectTab( { id: 'myplugin', label: 'My Plugin', component: MyPanelComponent } );
+    return true;
+}
+
+if ( ! injectTab() ) {
+    // The elementorV2 packages may not have executed yet. Poll briefly, then give up QUIETLY:
+    // on a build without the API, no tab is far better than an exception that breaks the panel.
+    var tries = 0;
+    var t = setInterval( function () { if ( injectTab() || ++tries > 60 ) { clearInterval( t ); } }, 100 );
+}
+```
+
+> ⚠️ **Do NOT inject the tab by rewriting Elementor's rendered HTML.** A widely-shipped plugin
+> buffers `elementor/editor/footer` and `preg_replace()`s a `<button class="elementor-component-tab
+> elementor-panel-navigation-tab" data-tab="…">` in after the `data-tab="global"` one. It works
+> today and breaks silently the day Elementor renames a class — that plugin ships a fallback for
+> exactly that case. With `injectTab()` available there is no reason to take the risk.
+
+**No build step needed.** `window.React` is global in the editor, so `React.createElement` (with a
+local `var h = React.createElement`) gives you the whole component model with nothing to compile —
+which also keeps the shipped file readable for a wp.org reviewer.
+
+### The two traps that lint clean and only show in a real editor
+
+**1. Anything the REST route calls must live OUTSIDE the `is_admin()` include block.** The panel
+reads and writes over REST, and **a REST request is not an admin request**. A rendering helper
+parked in an admin-only file (`meta-box.php` and friends) produces a fatal
+`Call to undefined function` the first time the endpoint runs — while the meta box using the same
+helper works perfectly. Keep shared presentation helpers in an always-loaded file.
+
+**2. The Elementor 4.x panel is LIGHT, not dark.** Style against Elementor's own custom properties
+and pick fallbacks that survive **both** themes:
+
+| Token | Value in 4.2 (light panel) |
+|---|---|
+| `--e-a-bg-default` | `#fff` |
+| `--e-a-color-txt` | `#515962` |
+| `--e-a-color-txt-muted` | `#818a96` |
+| `--e-a-border-color` | `#e6e8ea` |
+| `--e-a-bg-hover` / `--e-a-bg-active` | `#f1f2f3` / `#e6e8ea` |
+| `--e-a-color-info` | `#2563eb` |
+| `--e-a-btn-bg-primary` | **`#f3bafd`** — a pale pink that expects DARK text |
+
+- A `rgba(255,255,255,.12)` "subtle track/surface" fallback is **invisible** on the light panel.
+  Use **neutral grey alpha** (`rgba(127,127,127,.2)`) so it reads on white *and* on dark.
+- White label text on `--e-a-btn-bg-primary` is unreadable — that token is pale pink. For a solid
+  primary button use `var( --e-a-color-info, #2563eb )` with `#fff`.
+- Light-on-dark semantic colours (`#f0a3a3`, `#7fd0a8`…) vanish on white. Use mid-tones
+  (`#c53030`, `#a97a12`, `#1a7f52`) that hold up in both.
+- **Verify by reading computed styles in a live editor**, not by eye — both of these pass every
+  linter and look fine in the source.
+
+---
+
+## 6. Hooks quick-reference (the extension surface)
 
 **PHP — registration & rendering:**
 
@@ -202,6 +323,7 @@ elementor.hooks.addFilter( 'elements/widget/contextMenuGroups', ( groups, view )
 | `elementor/finder/register` | Add Finder items |
 | `elementor/frontend/after_register_scripts` / `after_enqueue_styles` | Frontend asset timing |
 | `elementor/editor/after_enqueue_scripts` / `after_enqueue_styles` | Editor-only assets |
+| `elementor/editor/before_enqueue_scripts` | Editor assets, early — use for a panel-tab bundle (§5) |
 | `elementor/preview/enqueue_styles` | Preview-iframe-only assets |
 
 **JS — editor & frontend:**
@@ -212,10 +334,12 @@ elementor.hooks.addFilter( 'elements/widget/contextMenuGroups', ( groups, view )
 | `frontend/element_ready/{widget}.default` | Per-widget frontend handler (incl. AJAX-loaded) |
 | `panel/open_editor/widget/{widget}` | Editor panel opened for a widget |
 | `elements/widget/contextMenuGroups` (filter) | Editor context-menu items |
+| `elementorV2.editorElementsPanel.injectTab()` (4.x API, not a hook) | Add a tab to the Elements panel (§5) |
+| `panel/elements/regionViews` (filter) | Low-level panel regions — `injectTab()` wraps this; prefer it |
 
 ---
 
-## 6. Deprecations to avoid
+## 7. Deprecations to avoid
 
 These still "work" but are deprecated — using them invites breakage and Plugin Check / review
 flags. Use the right-hand column.
@@ -236,7 +360,7 @@ flags. Use the right-hand column.
 
 ---
 
-## 7. Newer control types (4.x) — `VISUAL_CHOICE`
+## 8. Newer control types (4.x) — `VISUAL_CHOICE`
 
 A V3-compatible control added in the 4.x line: an **image-based** choice picker (each option is a
 visual/SVG, not just an icon-glyph like `CHOOSE`). Ideal for layout / skin / structure pickers.
