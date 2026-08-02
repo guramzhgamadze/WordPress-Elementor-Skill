@@ -394,6 +394,10 @@ exam app).
   sliver-collapse, a colliding flex column, a `var()` that resolved to nothing — all pass lint and
   "look fine" in code. Verify on a **live render** (the WP MCP bridge / a browser-driven preview),
   inspecting **computed styles**, not just screenshots.
+- **Never assert "my query matches the archive" against `$wp_query->posts`.** That is the
+  archive's *first page*, so a widget asked for 100 per page legitimately returns more and the
+  assertion fails on correct code — which then sends you refactoring a query that was fine.
+  Compare against `found_posts`, or re-run the archive's own `query_vars` unpaged.
 - **Style-tab controls do not exist outside the editor unless you ask for them.** Elementor skips
   registering them for performance, so a harness that inspects `get_controls()` from WP-CLI reports
   **every Typography / Colour / Border / Box-Shadow / alignment control as missing** — a wall of
