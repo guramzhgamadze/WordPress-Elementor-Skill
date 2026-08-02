@@ -36,7 +36,7 @@ for the task at hand.
 | Off-canvas UI, off-canvas accessibility, focus trap | **offcanvas-ui.md** |
 | Performance checklists (frontend + backend), speculative loading, IE conditional comments | **performance.md** |
 | Accessibility checklist, WCAG 2.2 AA, ARIA patterns | **performance.md** |
-| **Hard-won production gotchas** — widget lifecycle fatals, `content_template()` escaping, CSS-in-Elementor footguns, transactional email, wp.org review/packaging, embedding apps | **field-notes.md** |
+| **Hard-won production gotchas** — widget lifecycle fatals, `content_template()` escaping, CSS-in-Elementor footguns, transactional email, wp.org review/packaging, embedding apps, AJAX/loop re-rendering, dynamic CSS in loops, Swiper on optimised sites | **field-notes.md** |
 | **wordpress.org submission** — the 18 Directory Guidelines, Plugin Check 2.0.0 categories/usage, review process, required headers/readme | **wp-org-guidelines.md** |
 | **Subversion (SVN)** — deploying/tagging a release on the wordpress.org plugin/theme SVN (trunk/tags/assets), the daily work cycle, branching/merging, properties, repo admin | **svn/svn.md** (self-contained sub-bundle; `svn/references/` goes deeper) |
 | **Debugging & static analysis** — PHPCS+WPCS, PHPStan, Plugin Check, `WP_DEBUG`/Query Monitor, Elementor Safe Mode/cache, symptom→cause table | **debugging.md** |

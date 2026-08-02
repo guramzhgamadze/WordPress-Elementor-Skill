@@ -307,6 +307,20 @@ exam app).
   per-page CSS.** A new default only appears where the user hasn't set an Elementor value, and not
   until **Elementor → Tools → Regenerate Files & Data** + a hard refresh. Tell the user this
   instead of assuming the change is broken.
+- **The document a widget lives in is NOT the post being viewed — never use
+  `get_queried_object_id()` to identify your own widget.** On a Theme Builder template the
+  settings are in the template's `_elementor_data`; the queried object is whichever post the
+  template is currently rendering (and on an archive it isn't a post at all). Any code that looks
+  the widget up by the queried ID — an AJAX endpoint, a REST route, a cache key — finds nothing
+  and fails on **every** theme template while working perfectly on ordinary pages. Ask Elementor
+  instead, inside `render()`:
+  ```php
+  $doc = \Elementor\Plugin::$instance->documents->get_current();
+  $id  = $doc ? (int) $doc->get_main_id() : (int) get_the_ID();
+  ```
+  `Frontend::get_builder_content()` calls `switch_to_document()` before rendering elements for
+  exactly this reason. Use `get_main_id()`, not `get_id()`, so revisions and autosaves resolve to
+  the parent.
 
 ---
 
@@ -384,3 +398,75 @@ exam app).
   multibyte UTF-8 (`head -c`/`tail -c` cuts a Georgian/emoji char mid-byte → looks like
   corruption), or a stub that flags on the wrong condition produce confident **false alarms**.
   Verify the harness (paths, encodings, regex), then the file.
+
+---
+
+## 12. Re-rendering a widget out of band (AJAX / REST) and in loops
+
+- **A background request has no page.** `get_the_ID()`, `$wp_query`, `is_singular()` and the
+  permalink of "the current page" are all absent inside a REST or admin-ajax handler. Any query
+  option built on them — *related to the current post*, *exclude the current post*, *current
+  query* — silently produces a **different result set** on page 2 than on page 1, so the visitor
+  gets repeats or gaps rather than an error. Pass the displayed post's ID explicitly, validate it
+  (`get_post()` + published + not password-protected), `setup_postdata()` around the render, and
+  restore afterwards.
+- **Don't try to rebuild an archive's main query in a background request.** Query vars sent by the
+  client are the caller defining their own query, which is the thing your endpoint exists to
+  prevent; `WP::parse_request()` a second time fires `parse_request` again and other plugins
+  hooked there will act on it. For a *current query* source, leave pagination as **real page
+  links** — that is what Elementor's own Archive Posts widget does — and say so in a control
+  description.
+- **Links rendered inside an AJAX response are built from the AJAX request.** `add_query_arg()`
+  and `remove_query_arg()` with no URL argument read `$_SERVER['REQUEST_URI']`, which during the
+  call is `/wp-json/...`. Middle-clicking such a link hands the visitor raw JSON. Send the page's
+  URL along and validate it with **`wp_validate_redirect( $url, '' )`** — core's own "is this URL
+  ours" check — rather than trusting it or inventing a regex.
+- **"No results" and "past the end" are different answers.** Rendering the empty state for any
+  page with no posts means an append-mode request one page past the end drops *"no posts found"*
+  underneath a grid full of results. Gate the empty state on page 1.
+- **A Load More button must stop existing, not just stop working.** Guard on
+  `$paged >= $max_num_pages` and render nothing — a button that survives its last page reads as a
+  stray line of unstyled text under the grid, and pressing it fetches an empty page.
+
+### Dynamic-tag values that render as CSS cannot be looped
+
+- **Elementor deliberately keeps them out of the cached stylesheet.** A control that is both
+  dynamic and CSS-producing — a container **background image** bound to the featured image is the
+  usual case — is recorded in the CSS file's `dynamic_elements_ids` meta and *excluded* from
+  `elementor-post-<id>.css`. It is supplied separately by
+  `\Elementor\Core\DynamicTags\Dynamic_CSS`, resolved against whatever post is current.
+- **That mechanism is once-per-request and single-selector, so it cannot serve a loop.**
+  `Core\Files\CSS\Base::enqueue()` records the file handle in a **static** `$printed` array and
+  returns early ever after; and the selector it emits
+  (`.elementor-<template> .elementor-element-<id>`) is identical for every card, so even emitted
+  N times the last post would win for all N. The symptom is exact and misleading: **the image
+  shows in the editor and is simply absent on the front end**, because the editor regenerates CSS
+  against the current post on every render.
+- **Fix by scoping per item.** Give each card wrapper a per-post class, subclass `Dynamic_CSS`,
+  override `get_element_unique_selector()` to prefix that class (it is what fills `{{WRAPPER}}`,
+  so it covers every control), construct it with `new` (not `create()` — the files manager caches
+  by class+args and would hand every card the first card's CSS), and `echo` the result inline.
+  Elementor Pro's loop grid does the same thing with `.e-loop-item-<post_id>`.
+- **Check `dynamic_elements_ids` is non-empty before doing any of this** — almost no template
+  styles anything dynamically, and that check is what stops every card paying for a second CSS
+  parse.
+- **An image *widget* with a dynamic tag has none of these problems**, because it renders an
+  `<img>` inline per post. If a user only needs a per-post picture, that is the cheap answer.
+
+### Swiper inside an optimised site
+
+- **Swiper's autoplay refuses to start while the carousel measures zero, and never retries.**
+  `run()` opens with `if ( ! swiper.size ) { autoplay.running = false; autoplay.paused = false;
+  return; }`. Nothing calls it again, so autoplay is dead for the life of the page. The
+  fingerprint is `running === false` **and** `paused === false` — no other path clears both.
+- **This is why "it works in the editor and is frozen on the live site" happens.** LiteSpeed /
+  WP Rocket / Cloudflare APO defer or async the stylesheet that gives the container its width, so
+  the measurement at init is 0; the editor has no such optimisation. It is a **race**, so it
+  reproduces intermittently — do not conclude it is fixed because one reload autoplayed.
+- **Re-arm rather than re-init.** Watch the root with a `ResizeObserver` (plus a short interval
+  fallback, since a late stylesheet can change the width without a resize entry for that element);
+  once `swiper.size` is non-zero, `swiper.update()` then `swiper.autoplay.start()`. Record any
+  visitor-initiated pause on the instance first, so recovery never restarts what someone stopped.
+- **Elementor's carousels ship no visible play/pause button.** That is a WCAG 2.2.2 failure, not a
+  pattern to copy. Keep the control reachable by keyboard and hidden until focused — that gives
+  the same clean look without removing the mechanism.
