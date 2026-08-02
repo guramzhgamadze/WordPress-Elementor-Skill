@@ -394,6 +394,16 @@ exam app).
   sliver-collapse, a colliding flex column, a `var()` that resolved to nothing — all pass lint and
   "look fine" in code. Verify on a **live render** (the WP MCP bridge / a browser-driven preview),
   inspecting **computed styles**, not just screenshots.
+- **Style-tab controls do not exist outside the editor unless you ask for them.** Elementor skips
+  registering them for performance, so a harness that inspects `get_controls()` from WP-CLI reports
+  **every Typography / Colour / Border / Box-Shadow / alignment control as missing** — a wall of
+  confident false failures against code that is completely fine. Call
+  `\Elementor\Core\Frontend\Performance::set_use_style_controls( true )` before `get_controls()`
+  (this is exactly what `Core\Files\CSS\Base::parse_content()` does before rendering CSS).
+- **Group controls do not carry their selector on the control you would guess.** The
+  `_typography_typography` and `_box_shadow_box_shadow_type` entries are the *type* switches and
+  have no `selector`; the real one lives on `_box_shadow`, `_font_family`, `_font_size` and so on.
+  Assert against a sub-control that actually has a selector, or the assertion is meaningless.
 - **When a check fails, suspect the check before the artifact.** Mis-scoped regex, byte-slicing
   multibyte UTF-8 (`head -c`/`tail -c` cuts a Georgian/emoji char mid-byte → looks like
   corruption), or a stub that flags on the wrong condition produce confident **false alarms**.
