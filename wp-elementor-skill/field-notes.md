@@ -394,6 +394,19 @@ exam app).
   sliver-collapse, a colliding flex column, a `var()` that resolved to nothing — all pass lint and
   "look fine" in code. Verify on a **live render** (the WP MCP bridge / a browser-driven preview),
   inspecting **computed styles**, not just screenshots.
+- **A `<button>` inside your widget is a theme's button.** Themes style bare `button:hover` /
+  `button:focus` with the site accent (Astra does, at **0-1-1**), which outranks your single class
+  — so the one control in a row that happens to be a button flips colour on hover and then *stays*
+  that colour on focus after it is clicked, while the labels and links beside it do not. Elementor
+  control CSS does not save you: it only ever targets the resting state. Fix on both sides — put
+  `:hover, :focus` into the control's own `selectors` so a chosen colour reaches those states, and
+  restore the resting look in your stylesheet at a specificity above the theme's.
+- **`display: var(--display)` with the variable unset computes to `inline`, not `block`.** An
+  Elementor container whose generated CSS did not load loses its `--display`, the declaration is
+  invalid at computed-value time, and `display` falls back to its *initial* value. The container
+  then generates a line box, so it looks like "a small mystery gap above my first section" rather
+  than a stylesheet that failed to load. Check `getComputedStyle(el).getPropertyValue('--display')`
+  before chasing the spacing.
 - **Never assert "my query matches the archive" against `$wp_query->posts`.** That is the
   archive's *first page*, so a widget asked for 100 per page legitimately returns more and the
   assertion fails on correct code — which then sends you refactoring a query that was fine.
