@@ -226,6 +226,40 @@ exam app).
 
 ## 6. PHP & security gotchas
 
+- **A string baked into a config array at registration time is frozen — `apply_filters()` inside
+  it fires before anything can hook it.** The classic shape is a field/section definition built on
+  `init`:
+  ```php
+  // ✗ the filter runs NOW, during registration — nothing is hooked yet
+  $form->add_field( 'card_open', [
+      'type' => 'html',
+      'html' => '<h3>' . esc_html( apply_filters( 'myplugin_card_title', __( 'Profile', 'myplugin' ) ) ) . '</h3>',
+  ] );
+  ```
+  Registration runs on `init`; an Elementor widget's `render()`, a shortcode, or a template part
+  runs **much later**. Any `add_filter()` those add is registered *after* the value was already
+  computed, so the override is silently ignored — the filter "exists", fires, and does nothing.
+  The same freeze hits `__()`: the string is translated once, in whatever locale was active at
+  registration.
+  **Fix — defer the value, not the filter.** Store a callable and resolve it where the value is
+  actually used:
+  ```php
+  // ✓ resolved at render time, so later-registered filters apply
+  $form->add_field( 'card_open', [
+      'type' => 'html',
+      'html' => static function (): string {
+          return '<h3>' . esc_html( apply_filters( 'myplugin_card_title', __( 'Profile', 'myplugin' ) ) ) . '</h3>';
+      },
+  ] );
+
+  // …and in the renderer:
+  $html = $field['html'] ?? '';
+  if ( $html instanceof Closure ) { $html = $html(); }
+  echo wp_kses_post( (string) $html );
+  ```
+  Symptom to recognise: *"my filter/override works for some strings on the page but not others."*
+  The ones that work are echoed at render time; the ones that don't were baked at registration.
+  Code review will not catch this — only rendering it will.
 - **Read cookies from `$_COOKIE`, not `$_REQUEST`.** PHP's default `request_order = "GP"` means
   `$_REQUEST` holds GET+POST only — **never cookies**. A cookie read through a `$_REQUEST`-based
   helper always comes back empty (e.g. "new device" every login). Read `$_COOKIE['name']`
@@ -345,6 +379,25 @@ exam app).
 
 ## 10. Build, versioning & wp.org distribution
 
+- **`languages/` ships the `.pot` and nothing else.** Compiled `.mo` / `.l10n.php` files inside a
+  wp.org-hosted plugin never load (the loader only scans `WP_LANG_DIR/plugins/`) and the call that
+  would load them is flagged by Plugin Check. Keep author-side catalogues **outside** the plugin
+  folder — e.g. a repo-level `translations/` dir excluded from the zip allowlist. Full mechanism
+  and the translate.wordpress.org workflow: `wordpress-apis.md` §6.
+- **A "sync to test install" step that reports success can copy nothing.** On Windows, calling
+  `robocopy` from a POSIX shell with **forward-slash paths** makes it read `/Users/...` as
+  switches: it prints its usage text, copies zero files, and **still exits 0**. Everything
+  downstream then tests stale code while every check passes. Use `cp -r` from that shell (or
+  backslash paths from PowerShell), and afterwards **assert a known-new symbol exists in the
+  destination** rather than trusting the exit code.
+- **Splitting public/private repos: don't let a "sync" overwrite the public page.** A common
+  layout is a private source repo plus a public docs/Pages repo. The published `index.html`
+  usually carries things the private copy lacks — canonical/OpenGraph tags, and a download button
+  pointing at **wordpress.org** rather than a GitHub archive. Port the *content* change (version
+  string, "What's New") into the public copy; never overwrite it wholesale, or you ship a broken
+  download link. Untrack the duplicate in the private repo so there is one source of truth.
+- **Release order:** publish to SVN first, confirm the directory serves the new version, *then*
+  update the public page — so the site never advertises a version users cannot download.
 - **The distributable zip is an allowlist, not the repo.** Copy ONLY runtime dirs/files
   (`includes/ admin/ assets/ languages/` + `readme.txt uninstall.php <main>.php`) into a clean
   staging folder named exactly as the slug, then compress. Everything else (`.git/ .github/

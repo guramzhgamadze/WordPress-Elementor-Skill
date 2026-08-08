@@ -96,6 +96,14 @@ see the actual mixture — the second column is each item's individual
 working revision.
 
 Why this matters practically:
+- **A successful commit can look like a failed one.** Immediately after
+  `svn commit` returns `Committed revision N`, the working-copy *root* is
+  usually still at some revision **lower than N** — only the paths you
+  touched were bumped. So `svn info --show-item revision` reads "behind"
+  and it is easy to conclude the push didn't land. It did. Confirm against
+  the repository, not the working copy:
+  `svn log -l 1 <REPO_URL>` (or `svn list <REPO_URL>/tags/`), then run
+  `svn update` to bring the whole working copy to one revision.
 - You **cannot** delete a file/directory that isn't fully up to date —
   SVN blocks it to avoid destroying changes you haven't seen yet.
 - You **cannot** commit a property change to an out-of-date directory, for

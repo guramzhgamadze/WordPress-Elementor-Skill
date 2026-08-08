@@ -271,6 +271,9 @@ activate plugin, clear Elementor cache, etc.
 | Custom field exposed to REST / Elementor | `register_post_meta` + `show_in_rest` | wordpress-apis.md |
 | Scheduled / background task | WP-Cron (`wp_schedule_event`) + Action Scheduler for heavy jobs | wordpress-apis.md |
 | Make a plugin translatable | i18n functions + text-domain = slug + WP 6.7 `init`-timing rule | wordpress-apis.md |
+| Ship a translation for a wp.org-hosted plugin | `.pot` only in the zip; translate.wordpress.org → language packs (90% gate). **Never** bundle `.mo` / call `load_plugin_textdomain()` | wordpress-apis.md |
+| Style UI text for non-Latin locales | Caseless scripts + `text-transform`/`letter-spacing`; don't size to English string length | js-css-standards.md |
+| Test that translations actually load | Set the site locale before bootstrap; `unload_textdomain()` in WP-CLI; validate placeholders | debugging.md |
 | Deploy / tag a plugin release on wp.org SVN | `svn co` → copy to `trunk/` → `svn cp trunk tags/X.Y.Z` → `svn ci` (assets/ is a sibling) | svn/svn.md |
 | Any SVN task (checkout, commit, branch, merge, conflicts, repo admin) | Subversion sub-bundle | svn/svn.md |
 | WP 6.8 password hashing | `wp_check_password()` + `wp_password_needs_rehash()` | php-standards.md |

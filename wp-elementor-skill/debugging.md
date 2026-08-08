@@ -252,6 +252,34 @@ typed stub can.
 | **Giant logo / broken layout when embedding an app** | Theme/Elementor CSS out-specifies single-class selectors | Boost base specificity (doubled class); inspect computed styles (`field-notes.md` §5) |
 | **wp.org review / Plugin Check flags `EscapeOutput`** | `echo $var` / `echo $this->method()` not escaped at output | Escape at the point of output; make methods echo literals + `esc_*` (`field-notes.md` §3) |
 | **Slow admin/front page** | N+1 queries / unbounded `WP_Query` | Query Monitor → Queries by component; add `no_found_rows`, scope `post_type` (`performance.md`) |
+| **Translation "doesn't load" though the `.mo` is right there** | The JIT loader only scans `WP_LANG_DIR/plugins/`, never the plugin's own `/languages/` | Put the compiled file in `wp-content/languages/plugins/{slug}-{locale}.mo` (`wordpress-apis.md` §6) |
+| **A filter/override applies to some strings on a page but not others** | The stubborn ones were baked into a config array at registration (`init`), before anything could hook the filter | Defer the value to a closure resolved at render time (`field-notes.md` §6) |
+
+---
+
+## 5b. Testing internationalization without fooling yourself
+
+i18n gives false negatives more readily than almost anything else — three separate traps produced
+"it's broken" results in one session when the code was fine:
+
+- **Switching locale mid-request proves nothing.** Adding a `locale` filter (or `switch_to_locale()`)
+  *after* WordPress has bootstrapped leaves everything already registered in the old locale.
+  Field labels, post-type labels and control labels are translated **once, on `init`** — flip the
+  locale afterwards and those keep their English text while later `__()` calls come out
+  translated. You then "discover" a bug that does not exist on a real request.
+  **Do it properly:** make the site itself the target locale before bootstrapping —
+  `wp language core install ka_GE` then set the `WPLANG` option — and run with no locale filters
+  at all. Restore it afterwards.
+- **`switch_to_locale()` silently refuses** if that locale's core translation set isn't installed;
+  `get_locale()` still returns `en_US` and every assertion "fails". Print `determine_locale()`
+  before trusting any i18n test.
+- **WP-CLI caches the text domain during bootstrap.** By the time your `eval` runs, `$l10n[$domain]`
+  is already populated (often as `NOOP_Translations`) and the just-in-time loader will not re-run.
+  Call `unload_textdomain( $domain, true )` first, or the test reports English no matter what.
+
+Verify a catalogue mechanically before shipping it: assert that the printf placeholders
+(`%s`, `%d`, `%1$s`) and HTML tags in each `msgstr` match its `msgid`. A dropped or renamed
+placeholder is a runtime break that every PHP lint and unit test will pass.
 
 ---
 

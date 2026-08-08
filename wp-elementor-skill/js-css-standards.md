@@ -158,3 +158,49 @@ function myplugin_enqueue_assets(): void {
   transition:       transform var(--mp-transition);
 }
 ```
+
+---
+
+## Non-Latin scripts — the typography rules that break silently
+
+A plugin in the wp.org directory gets translated into scripts you never test. Two Latin-only
+habits produce visibly broken text and never raise an error:
+
+**`text-transform: uppercase` + `letter-spacing` on UI micro-copy.** The small-caps look
+(`text-transform: uppercase; letter-spacing: .07em`) is a Latin convention. Georgian, Hebrew,
+Arabic, Thai and CJK are **caseless** — the transform is a no-op for them, but the tracking still
+applies and visibly pulls the word apart. Georgian `ან` ("or") on a form divider renders as
+loose, disconnected glyphs.
+
+```css
+.myplugin__divider span {          /* fine for Latin */
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+
+/* Caseless scripts gain nothing from the transform but still get the tracking — reset both. */
+.myplugin__divider span:lang(ka),
+.myplugin__divider span:lang(he),
+.myplugin__divider span:lang(ar),
+.myplugin__divider span:lang(ja),
+.myplugin__divider span:lang(ko),
+.myplugin__divider span:lang(zh),
+.myplugin__divider span:lang(th) {
+  text-transform: none;
+  letter-spacing: normal;
+}
+```
+
+`:lang()` matches the document's `lang` attribute, which WordPress emits from the site locale via
+`language_attributes()` — so this needs no PHP.
+
+**Don't size containers to English string lengths.** Translations commonly run 20–40% longer
+(German, Georgian, Finnish) or much shorter (CJK). Fixed-width buttons, `white-space: nowrap` on
+labels, and single-line tab strips all fail on the first translated site. Prefer intrinsic sizing
+plus wrapping; if a value must not wrap, give it `min-width: 0` and `overflow-wrap: anywhere` so
+it shrinks and breaks rather than overflowing (see field-notes.md §4 on the flex `min-width`
+footgun).
+
+**Reminder:** if you ship any of this as a hardcoded value you have also broken Golden Rule #6 —
+alignment, tracking and transform should be Elementor controls, and then the user can fix it
+themselves in any language.

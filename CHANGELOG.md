@@ -25,6 +25,60 @@ place instead of being scattered across the sub-files.
 
 ## Audit rounds
 
+### Round 32 — August 8, 2026 — shipping a translation for a directory-hosted plugin
+All of this came out of taking one plugin from "English only" to a complete locale on
+wordpress.org, and being wrong twice before getting it right. No file count change (54).
+
+**`wordpress-apis.md` §6 — rewritten.** The old text said translations "auto-load" for hosted
+plugins and that `load_plugin_textdomain()` was only needed for "private plugin / bundled .mo
+files", which reads as *bundling is fine, just call this*. Both halves of that mislead. Now
+documented as a mechanism, not a rule of thumb:
+- `WP_Textdomain_Registry::get_path_from_lang_dir()` scans **`WP_LANG_DIR/plugins/` only** — never
+  the plugin's own `/languages/`. A bundled `.mo` therefore **never loads**.
+- The one call that changes that, `load_plugin_textdomain()`, is **flagged discouraged by Plugin
+  Check** for directory-hosted plugins. So bundling is either dead weight or a review warning.
+- Precedence verified from core: a language pack wins; a custom path is only a fallback — an
+  author catalogue can never shadow the community translation.
+- Added the workflow that actually delivers: `.pot` only in the zip → translate.wordpress.org →
+  language pack. Plus the parts that bite — the **90% Current** gate (a "user-facing strings only"
+  catalogue sits near 37% and never generates a pack), import is open to any user but approval
+  needs **PTE**, build the catalogue **from the GlotPress export** so msgids and `Plural-Forms`
+  match (a local POT gave `nplurals=2` for Georgian where GlotPress uses `1`), `.l10n.php` as the
+  WP 6.5+ fast path, the `wp-content/languages/plugins/` drop-in for interim use, and the
+  Polyglots rule that unreviewed machine translation is not acceptable.
+
+**`field-notes.md` §6 — strings frozen at registration time.** A `__()` or `apply_filters()`
+written inside a config array built on `init` is evaluated *then*: the filter fires before
+anything can hook it, so later overrides are silently ignored, and the string is translated once
+in whatever locale was active. Symptom: *"my override works for some strings on the page but not
+others."* Fix is to store a closure and resolve it at render time. Code review cannot catch this;
+only rendering can.
+
+**`field-notes.md` §10 — distribution.** `languages/` ships the `.pot` and nothing else; keep
+author catalogues outside the zip. Two release-process traps: `robocopy` invoked from a POSIX
+shell with **forward-slash paths** silently copies nothing and **exits 0** (so a test install
+quietly runs stale code while every check passes — use `cp -r` and assert a known-new symbol
+landed); and when a project splits private-source / public-docs repos, never overwrite the
+published `index.html` from the private copy — it carries canonical/OG tags and a
+**wordpress.org** download button the private one lacks. Release order: SVN → verify → docs page.
+
+**`js-css-standards.md` — non-Latin scripts.** `text-transform: uppercase` + `letter-spacing` is a
+Latin convention: caseless scripts (Georgian, Hebrew, Arabic, Thai, CJK) gain nothing from the
+transform but still get the tracking, which visibly pulls words apart. `:lang()` reset included.
+Plus: don't size containers to English string lengths.
+
+**`debugging.md` §5b — testing i18n without fooling yourself.** Three false negatives, all hit in
+one session: switching locale mid-request leaves everything registered on `init` in the old
+locale (phantom bug); `switch_to_locale()` silently refuses when the core pack isn't installed;
+WP-CLI has already cached the text domain, so `unload_textdomain()` is required first. Plus:
+validate placeholder/HTML parity mechanically — a dropped `%s` passes every lint.
+
+**`svn/references/troubleshooting.md`** — a successful commit reads as a failed one: right after
+`Committed revision N` the working-copy root still shows a lower revision (only touched paths are
+bumped). Verify against the repository, then `svn update`.
+
+---
+
 ### Round 31 — July 27, 2026 — editor panel tabs, dynamic-tag parents & the no-default colour rule
 Three pieces of field-verified work, each from building a real plugin against a live Elementor
 4.2.0 install rather than from documentation.

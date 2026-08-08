@@ -226,12 +226,62 @@ wp_schedule_single_event( time() + 10 * MINUTE_IN_SECONDS, 'myplugin_one_off', [
 ```php
 // Header: "Text Domain: myplugin" — the text domain MUST EQUAL the plugin slug (Golden Rule #7).
 
-// wp.org-HOSTED plugins: translations auto-load — load_plugin_textdomain() is usually unnecessary.
-// If you do load (private plugin / bundled .mo files), hook it at 'init' or later:
+// wp.org-HOSTED plugin: add NOTHING. Do not call load_plugin_textdomain().
+// Translations arrive as language packs and load themselves. See the trap below.
+
+// PRIVATE / self-hosted plugin only — this is the ONLY case where you need it:
 add_action( 'init', function () {
     load_plugin_textdomain( 'myplugin', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 } );
 ```
+
+> 🚨 **The bundled-`.mo` trap — you cannot ship translations inside a wp.org-hosted plugin.**
+> This looks like it should work and silently doesn't, so read the mechanism once:
+>
+> 1. WordPress resolves a plugin's translations through `WP_Textdomain_Registry`
+>    (`wp-includes/class-wp-textdomain-registry.php`). Its `get_path_from_lang_dir()` scans
+>    **`WP_LANG_DIR/plugins/`** — i.e. `wp-content/languages/plugins/` — and **nothing else.**
+>    It never looks inside your plugin's own `/languages/` folder.
+> 2. So a `.mo` you ship in `myplugin/languages/` is **never loaded**. Your `.pot` is fine there
+>    (it is a template, not a catalogue), but the compiled files are dead weight.
+> 3. The only thing that changes this is `load_plugin_textdomain()`, which registers a *custom
+>    fallback path* on the registry — and **Plugin Check flags that call as discouraged**:
+>    *"load_plugin_textdomain() has been discouraged since WordPress version 4.6. When your plugin
+>    is hosted on WordPress.org, you no longer need to manually include this function call."*
+> 4. Net effect for a hosted plugin: bundling is either **dead weight** (no call) or a **review
+>    warning** (with the call). Neither is what you want.
+>
+> **The supported route:** ship only the `.pot`; translations live on
+> [translate.wordpress.org](https://translate.wordpress.org/) and are delivered as **language
+> packs**, which install to `WP_LANG_DIR/plugins/` — exactly where the loader already looks.
+> Note the precedence is the right way round: a language pack always wins, and a custom path is
+> only a fallback, so an author-supplied catalogue can never shadow the community translation.
+
+### Getting a locale actually translated (the parts that bite)
+
+- **90% or nothing.** wordpress.org generates the first language pack only once **≥90%** of that
+  locale's strings are approved as **Current**. A "just the user-facing strings" catalogue
+  typically lands near 35–40% and will **never** produce a pack. Translate the admin/settings/
+  control-label strings too, or the work ships to nobody.
+- **Anyone can import; only editors can approve.** Any wp.org user can use *Import Translations*
+  on a plugin/theme project (the link appears at the bottom of a translation-set page **when
+  logged in**). Imported strings land as **Waiting**. To set them Current you need **PTE** for
+  that locale — request it on the front page of `make.wordpress.org/polyglots/` using the
+  `#locale_code` tag (e.g. `#de_DE`) so the locale's GTEs are notified.
+- **Build the catalogue from the GlotPress export, not your local `.pot`.** Download the locale's
+  PO from the project and fill *that* in. Two reasons: the `msgid`s then match the project
+  exactly, and the export carries the locale's real **`Plural-Forms`**. These disagree — a
+  locally generated POT gave `nplurals=2` for Georgian while GlotPress uses `nplurals=1`.
+- **Validate placeholders before importing.** A translation that loses or renames a `%s` / `%d` /
+  `%1$s`, or drops an HTML tag, breaks output at runtime and passes every PHP lint. Diff the
+  placeholder and tag sets between `msgid` and `msgstr` programmatically.
+- **`.l10n.php` is the fast path.** WP 6.5+ prefers `myplugin-{locale}.l10n.php` over `.mo`;
+  the registry checks for both. Generate with `wp i18n make-php`.
+- **Interim use while you wait for a pack:** drop the compiled files into the site's own
+  `wp-content/languages/plugins/`. That is the language-pack location, so the loader finds them
+  with no plugin code and no Plugin Check warning, and a real pack later overwrites them.
+- **Machine translation is not acceptable unreviewed.** Polyglots states MT *"without human
+  review…will NOT be considered acceptable"*. Have a native speaker read it before approving.
 
 > ⚠️ **WP 6.7+ — don't translate before `init`.** Calling `__()` / `_e()` / `esc_html__()` for your
 > text domain **earlier than the `init` action** now triggers a `_doing_it_wrong` notice:
