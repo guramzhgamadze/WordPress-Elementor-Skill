@@ -460,6 +460,26 @@ exam app).
   then generates a line box, so it looks like "a small mystery gap above my first section" rather
   than a stylesheet that failed to load. Check `getComputedStyle(el).getPropertyValue('--display')`
   before chasing the spacing.
+- **PHPStan on an Elementor plugin needs two config lines, or it argues for deleting your guards.**
+  Point `scanDirectories` at the real Elementor source (a hand-written stub cannot catch signature
+  drift), then:
+  - add a `bootstrapFiles` entry `define()`-ing your plugin constants — PHPStan does not evaluate
+    the `define()` calls in your bootstrap, so every use reads as `constant.notFound` and buries
+    the real findings (14 of 33 on one run);
+  - set **`treatPhpDocTypesAsCertain: false`**. Elementor declares its managers as *untyped*
+    properties carrying only a `@var` docblock (`public $preview;`) and they are genuinely null
+    until it initialises them. Left on, PHPStan calls every defensive `isset()` redundant and
+    every version_compare against the scanned Elementor "always false" — i.e. it recommends
+    removing the exact checks that prevent a fatal.
+  What survives that is worth reading. **Run level 8 once even if you gate at 5**: past the
+  `missingType.iterableValue` noise it found `foreach ( glob( … ) )` — `glob()` returns `false` on
+  failure — and a sanitiser returning `preg_replace()`'s result, which is `null` when the engine
+  gives up.
+- **Plugin Check warnings are not errors, and some are the sniff reading an array key.**
+  `'meta_value' => __( 'Custom field' )` in a SELECT control's options trips
+  `SlowDBQuery.slow_db_query_meta_value`; `'exclude' => __( 'Exclude sticky posts' )` trips
+  `PostNotIn_exclude`. Neither is a query argument. Those earn a tagged `phpcs:ignore`; a real
+  `post__not_in` excluding a bounded, user-chosen set does not — leave it and say why.
 - **Never assert "my query matches the archive" against `$wp_query->posts`.** That is the
   archive's *first page*, so a widget asked for 100 per page legitimately returns more and the
   assertion fails on correct code — which then sends you refactoring a query that was fine.
