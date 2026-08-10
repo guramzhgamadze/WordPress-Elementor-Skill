@@ -25,6 +25,35 @@ place instead of being scattered across the sub-files.
 
 ## Audit rounds
 
+### Round 33 — August 10, 2026 — two ways your own CSS disables your own controls
+Both found by debugging a real "this control does nothing" report, and both invisible to every
+linter, to Plugin Check, and to code review. No file count change (54).
+
+**`field-notes.md` §4 — `!important` in your own stylesheet kills the matching Elementor control.**
+The existing guidance covered `!important` versus *themes*; this is the reverse and far easier to
+ship by accident. A rule written to neutralise a default look (*"this layout is a container, not a
+card — don't double-card it"*) also outranks the CSS Elementor generates, because Elementor's
+output carries no `!important`. One such line disabled **five** controls at once — Background,
+Padding, Border, Radius, Shadow — on a single widget, while the same controls worked everywhere
+else. Recorded with the fix: check specificity first, because the `!important` is usually
+unnecessary (there, the neutralising selector was already `(0,2,0)` and later in the file, beating
+the `(0,1,0)` base rule, while Elementor's is `(0,3,0)+`). Rule added: **a reset/neutralise rule on
+an element that also has style controls must win by specificity or order, never by `!important`.**
+Includes the one-liner that lists every CSS rule matching an element in a live DOM, which surfaces
+the culprit instantly.
+
+**`field-notes.md` §4 — overlapping control selectors resolve by registration order.** Elementor
+emits generated CSS in control-registration order, so when two control groups target classes that
+the *same element* carries (a "Remove link" control on `.item-remove` and a generic "Action links"
+control on `.link-button`), the group registered **later** wins at equal specificity and the
+specific control silently loses. Fix is to scope the specific one a level deeper rather than
+reordering panel sections.
+
+**`debugging.md` §5** — two new symptom rows: *"one style control does nothing, on one widget only"*
+and *"a specific style control is overridden by a more generic one."*
+
+---
+
 ### Round 32 — August 8, 2026 — shipping a translation for a directory-hosted plugin
 All of this came out of taking one plugin from "English only" to a complete locale on
 wordpress.org, and being wrong twice before getting it right. No file count change (54).

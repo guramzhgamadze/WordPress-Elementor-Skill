@@ -133,6 +133,37 @@ exam app).
 - **Style controls must target the OUTERMOST wrapper the widget owns.** Targeting an inner element
   leaves the title/border/card outside the styled area. Pair with the `{{WRAPPER}}` selector
   rules in `js-css-standards.md`.
+- **`!important` in YOUR OWN stylesheet silently kills the matching Elementor controls.** The usual
+  warning is about `!important` vs *themes*; this is the reverse and much easier to ship. A rule
+  written to neutralise a default look —
+  ```css
+  /* "this layout is a container, not a card — don't double-card it" */
+  .myplugin-form-account,
+  .myplugin-wrap:has(.myplugin-form-account){background:none!important;border:0!important;
+    border-radius:0!important;padding:0!important;box-shadow:none!important}
+  ```
+  — also outranks the CSS Elementor generates, because Elementor's output carries no `!important`.
+  In one case that single line disabled **five** controls at once (Background, Padding, Border,
+  Radius, Shadow) on one widget while the same controls worked everywhere else. Nothing errors;
+  the panel just does nothing.
+  **The `!important` is almost never needed** — check the specificity first. Here
+  `.myplugin-wrap:has(.myplugin-form-account)` is **(0,2,0)** and appears later in the file, so it
+  already beat the base `.myplugin-wrap, .myplugin-form` rule at **(0,1,0)**; Elementor's selector
+  is **(0,3,0)+** and wins over both. Deleting the five `!important`s preserved the default look
+  *and* restored the controls. Rule of thumb: **a "reset/neutralise" rule on an element that also
+  has style controls must win by specificity or order, never by `!important`.**
+  Symptom to recognise: *"this one control does nothing on this one widget."* Verify by reading
+  **computed** styles in a live DOM and listing which rules actually match the element —
+  `[...document.styleSheets].flatMap(s=>[...s.cssRules]).filter(r=>r.selectorText&&el.matches(r.selectorText))`
+  shows the `!important` rule immediately.
+- **Two control groups whose selectors overlap: at equal specificity the one registered LAST wins.**
+  Elementor emits generated CSS in control-registration order, so a generic group (say "Action
+  Links" → `.myplugin-link-button`) registered after a specific one ("Remove Link" →
+  `.myplugin-item-remove`) will override it whenever an element carries **both** classes — the
+  specific control silently loses. Don't reorder sections to fix it (fragile, and the panel order
+  is a UX decision). **Scope the more specific control one level deeper** so it wins on
+  specificity regardless of order: `{{WRAPPER}} .myplugin-panel .myplugin-item-remove`. Audit for
+  this by listing every selector your controls target and checking for shared classes.
 - **`{{WRAPPER}}` selectors can't cross-reference another control's value.** A combined visual
   effect (e.g. focus-glow spread *and* colour) needs **two** controls feeding one selector. Use
   `CHOOSE` + `selectors_dictionary` for non-numeric CSS toggles (not `SELECT`). URL controls

@@ -253,6 +253,8 @@ typed stub can.
 | **wp.org review / Plugin Check flags `EscapeOutput`** | `echo $var` / `echo $this->method()` not escaped at output | Escape at the point of output; make methods echo literals + `esc_*` (`field-notes.md` §3) |
 | **Slow admin/front page** | N+1 queries / unbounded `WP_Query` | Query Monitor → Queries by component; add `no_found_rows`, scope `post_type` (`performance.md`) |
 | **Translation "doesn't load" though the `.mo` is right there** | The JIT loader only scans `WP_LANG_DIR/plugins/`, never the plugin's own `/languages/` | Put the compiled file in `wp-content/languages/plugins/{slug}-{locale}.mo` (`wordpress-apis.md` §6) |
+| **One style control does nothing, on one widget only** | Your own CSS neutralises that property with `!important`, outranking Elementor's generated rule | List the rules matching the element in a live DOM; drop the `!important` and win by specificity instead (`field-notes.md` §4) |
+| **A specific style control is overridden by a more generic one** | Both selectors match the element at equal specificity; the group registered LATER wins on source order | Scope the specific control one level deeper (`{{WRAPPER}} .panel .item`) (`field-notes.md` §4) |
 | **A filter/override applies to some strings on a page but not others** | The stubborn ones were baked into a config array at registration (`init`), before anything could hook the filter | Defer the value to a closure resolved at render time (`field-notes.md` §6) |
 
 ---
