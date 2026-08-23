@@ -164,8 +164,14 @@ Every item below cost a review round on a live wp.org submission:
   `wp_function_not_compatible_with_requires_wp` is an ERROR keyed on the header —
   `function_exists()` guards do **NOT** satisfy it. If you call
   `str_starts_with()`/`str_contains()` (WP 5.9+ polyfills) or `wp_register_ability()` (WP 6.9+),
-  set the header to the real floor. `Tested up to` must equal the current WP major or the readme
-  check errors.
+  set the header to the real floor.
+- **`Tested up to` going stale is an ERROR, and it costs you visibility.** Plugin Check raises
+  `outdated_tested_upto_header` the moment a new WP major ships, and states the consequence
+  plainly: the plugin *"will not show up in searches"* until the header matches. It is not a
+  warning to defer — bump it as part of every release, and only after actually exercising the
+  plugin on that version, which a throwaway local install of `latest.zip` makes cheap. Note that
+  your dependencies lag independently: Elementor's own header sat at 7.0.4 days after WP 7.1
+  shipped, which is normal and not a reason to hold your own back.
 
 ---
 
