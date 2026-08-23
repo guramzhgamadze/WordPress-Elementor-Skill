@@ -511,6 +511,24 @@ exam app).
   `SlowDBQuery.slow_db_query_meta_value`; `'exclude' => __( 'Exclude sticky posts' )` trips
   `PostNotIn_exclude`. Neither is a query argument. Those earn a tagged `phpcs:ignore`; a real
   `post__not_in` excluding a bounded, user-chosen set does not — leave it and say why.
+- **wp.org screenshots can be produced headlessly, including the editor panels.** `chrome
+  --headless --screenshot` only loads a URL and snaps it, which is enough for the front end but
+  cannot select a widget. Drive Chrome over the DevTools Protocol instead — Node 21+ has a global
+  `WebSocket` and `fetch`, so it needs no packages: launch with `--remote-debugging-port`, read
+  `/json` for the target, then `Page.navigate` / `Runtime.evaluate` / `Page.captureScreenshot`.
+  Four things bite, in order:
+  - **`--screenshot` needs an ABSOLUTE path.** A relative one writes nowhere and reports nothing.
+  - **The editor is behind `auth_redirect()`**, which reads `$_COOKIE` directly. A shim that calls
+    `wp_set_auth_cookie()` and lets the same request continue does nothing; it must set the cookie
+    and then **redirect**, so the cookie is present on the next request. No password is typed.
+  - **Headless loses the preview-iframe load race**, leaving the editor on its splash with
+    everything underneath already loaded. Call `elementor.onPreviewLoaded()` yourself, hide
+    `#elementor-loading`, and force `#elementor-preview` visible.
+  - **Select the widget with `$e.run('document/elements/select', { container })`** rather than a
+    synthetic click, then wait ~10s — selecting re-renders the preview, and capturing too early
+    gives an empty canvas.
+  Cards below the first row are lazy-loaded and a screenshot cannot scroll, so a demo-only filter
+  swapping `loading="lazy"` for `eager` is what makes lower rows appear.
 - **Never assert "my query matches the archive" against `$wp_query->posts`.** That is the
   archive's *first page*, so a widget asked for 100 per page legitimately returns more and the
   assertion fails on correct code — which then sends you refactoring a query that was fine.
