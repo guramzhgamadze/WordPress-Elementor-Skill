@@ -46,8 +46,8 @@
                     <div class="text-indigo-300 text-sm mt-1">Audit rounds</div>
                 </div>
                 <div class="bg-indigo-800/50 rounded-xl p-4">
-                    <div class="text-3xl font-extrabold text-white">60+</div>
-                    <div class="text-indigo-300 text-sm mt-1">Bugs fixed</div>
+                    <div class="text-3xl font-extrabold text-white">15</div>
+                    <div class="text-indigo-300 text-sm mt-1">Core reference files</div>
                 </div>
             </div>
         </div>
@@ -140,11 +140,24 @@
 
                 <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
                     <div class="md:w-1/4 flex justify-center shrink-0">
+                        <i class="fas fa-database text-6xl text-emerald-600"></i>
+                    </div>
+                    <div class="md:w-3/4">
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <h4 class="text-xl font-bold text-slate-800">The Database Layer, Properly</h4>
+                            <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-medium">New</span>
+                        </div>
+                        <p class="text-slate-600">Custom tables via <code class="bg-slate-100 px-1 rounded text-sm">dbDelta()</code> and its unforgiving formatting rules, why WordPress indexes strings at <code class="bg-slate-100 px-1 rounded text-sm">varchar(191)</code> (InnoDB&rsquo;s 767-byte prefix cap &divide; 4 bytes per <code class="bg-slate-100 px-1 rounded text-sm">utf8mb4</code> character), the leftmost-prefix rule, and reading <code class="bg-slate-100 px-1 rounded text-sm">EXPLAIN</code>. Plus <strong>MariaDB&harr;MySQL portability</strong> &mdash; your plugin doesn&rsquo;t choose the engine, and JSON is stored and compared differently on each. Sourced from the official MariaDB Knowledge Base.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
+                    <div class="md:w-1/4 flex justify-center shrink-0">
                         <i class="fab fa-wordpress text-6xl text-[#21759B]"></i>
                     </div>
                     <div class="md:w-3/4">
                         <h4 class="text-xl font-bold text-slate-800 mb-2">WooCommerce HPOS-Ready</h4>
-                        <p class="text-slate-600">Full HPOS compatibility declaration, HPOS-native order API (<code class="bg-slate-100 px-1 rounded text-sm">wc_get_order()</code>, <code class="bg-slate-100 px-1 rounded text-sm">get_meta()</code>, <code class="bg-slate-100 px-1 rounded text-sm">update_meta_data()</code>), and the WC&nbsp;10.7 &ldquo;sync on read&rdquo; default change (shipped April&nbsp;14, 2026) with source code citation.</p>
+                        <p class="text-slate-600">Full HPOS compatibility declaration and the HPOS-native order API (<code class="bg-slate-100 px-1 rounded text-sm">wc_get_order()</code>, <code class="bg-slate-100 px-1 rounded text-sm">get_meta()</code>, <code class="bg-slate-100 px-1 rounded text-sm">update_meta_data()</code>), the WC&nbsp;10.7 &ldquo;sync on read&rdquo; change with source citation, and <strong>WC&nbsp;11.0&rsquo;s removal of the product editor beta</strong> &mdash; including its extension points, so any UI registered through them must move to the classic screen.</p>
                     </div>
                 </div>
 
@@ -154,7 +167,27 @@
                     </div>
                     <div class="md:w-3/4">
                         <h4 class="text-xl font-bold text-slate-800 mb-2">Accessibility &amp; Performance Built In</h4>
-                        <p class="text-slate-600">WCAG 2.2 AA checklist, accessible off-canvas panels with <code class="bg-slate-100 px-1 rounded text-sm">inert</code> and <code class="bg-slate-100 px-1 rounded text-sm">--hidden</code> in HTML markup (not only JS), focus trap, iOS scroll lock. Full frontend checklist: LCP, Speculative Loading, WP&nbsp;6.9+ IE conditional comment removal, WP&nbsp;7.0 RTC-aware query scoping.</p>
+                        <p class="text-slate-600">WCAG 2.2 AA checklist, accessible off-canvas panels with <code class="bg-slate-100 px-1 rounded text-sm">inert</code> and <code class="bg-slate-100 px-1 rounded text-sm">--hidden</code> in HTML markup (not only JS), focus trap, iOS scroll lock. Full frontend checklist: LCP, Speculative Loading, WP&nbsp;6.9+ IE conditional comment removal, RTC-aware query scoping, and running <code class="bg-slate-100 px-1 rounded text-sm">EXPLAIN</code> on a slow query instead of guessing at indexes.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
+                    <div class="md:w-1/4 flex justify-center shrink-0">
+                        <i class="fas fa-bug text-6xl text-amber-500"></i>
+                    </div>
+                    <div class="md:w-3/4">
+                        <h4 class="text-xl font-bold text-slate-800 mb-2">Field Notes &mdash; the Bugs That Pass Every Linter</h4>
+                        <p class="text-slate-600">The part you can&rsquo;t get from documentation: an untyped override of a typed Elementor method that white-screens every page, a colour control with a <code class="bg-slate-100 px-1 rounded text-sm">default</code> the user can never switch off, CSS custom properties that don&rsquo;t cascade upward to Elementor&rsquo;s wrapper, <code class="bg-slate-100 px-1 rounded text-sm">{{{ }}}</code> in a Backbone preview getting a submission rejected, and a <code class="bg-slate-100 px-1 rounded text-sm">min-width</code> floor on a flex child that forces overflow. Every entry exists because the opposite shipped and broke something.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
+                    <div class="md:w-1/4 flex justify-center shrink-0">
+                        <i class="fas fa-clipboard-check text-6xl text-sky-600"></i>
+                    </div>
+                    <div class="md:w-3/4">
+                        <h4 class="text-xl font-bold text-slate-800 mb-2">Getting It Onto WordPress.org</h4>
+                        <p class="text-slate-600">The 18 Detailed Plugin Guidelines in actionable form, <strong>Plugin Check 2.1.0</strong> (the reviewer&rsquo;s own tool &mdash; now scanning your SVN repo, not just your zip), how the review really works round to round, and hard lines learned in a live review: no user-authored SQL, external-services disclosure, escaping at the point of output. Then a self-contained <strong>SVN sub-bundle</strong> to actually ship it &mdash; <code class="bg-slate-100 px-1 rounded text-sm">trunk</code>/<code class="bg-slate-100 px-1 rounded text-sm">tags</code>/<code class="bg-slate-100 px-1 rounded text-sm">assets</code>, tagging a release, matching <code class="bg-slate-100 px-1 rounded text-sm">Stable tag</code>.</p>
                     </div>
                 </div>
 
@@ -375,7 +408,7 @@
     <section class="py-12 bg-slate-50 border-t border-slate-200">
         <div class="max-w-3xl mx-auto px-6 text-center">
             <h2 class="text-2xl font-bold text-slate-900 mb-3">Official Sources Only</h2>
-            <p class="text-slate-500 mb-8">Every fact verified against the canonical source. Round 21 confirmed WordPress 7.0 and Elementor 4.2 from live changelogs; later rounds add only field-verified lessons from real builds and reviews.</p>
+            <p class="text-slate-500 mb-8">Every fact verified against the canonical source &mdash; official changelogs, handbooks and release notes, never third-party tutorials. Where a claim can&rsquo;t be corroborated it doesn&rsquo;t ship: the database file cites the MariaDB Knowledge Base directly, and a version number it couldn&rsquo;t confirm was replaced with portable guidance rather than a guess.</p>
             <div class="flex flex-wrap justify-center gap-3 text-sm">
                 <a href="https://wordpress.org/news/" target="_blank" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-full transition">wordpress.org/news</a>
                 <a href="https://make.wordpress.org/core/" target="_blank" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-full transition">make.wordpress.org/core</a>
@@ -385,6 +418,8 @@
                 <a href="https://github.com/elementor/elementor" target="_blank" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-full transition">github.com/elementor</a>
                 <a href="https://wordpress.org/plugins/elementor/" target="_blank" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-full transition">wordpress.org/plugins/elementor</a>
                 <a href="https://developer.woocommerce.com/" target="_blank" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-full transition">developer.woocommerce.com</a>
+                <a href="https://mariadb.com/kb/en/" target="_blank" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-full transition">mariadb.com/kb</a>
+                <a href="https://wordpress.org/plugins/plugin-check/" target="_blank" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-full transition">wordpress.org/plugins/plugin-check</a>
             </div>
         </div>
     </section>
