@@ -59,12 +59,24 @@ Reviewers cite these by number ("this fails Guideline 8"). Keep the numbering.
 
 ---
 
-## Plugin Check (PCP) 2.0.0 — the reviewer's own tool
+## Plugin Check (PCP) 2.1.0 — the reviewer's own tool
 
 The official plugin (by the WordPress.org team) that runs **most of the checks used for new
 submissions**. Requires WP 6.3+ / PHP 7.4+. **Run it until your own code is 0 findings before
 every submission and resubmission** (standing project rule). Passing is necessary but **not
 sufficient — human review is still mandatory.**
+
+> 🆕 **New in 2.1.0 (Aug 16, 2026)** — three of these will flag plugins that passed under 2.0.0:
+> - **SVN Checker** — scans the plugin's **wp.org SVN repository** for unexpected files. It sees
+>   what you committed to `trunk/`, not just what is in your zip, so a stray dev file that
+>   survived in SVN now surfaces even when your build is clean. (See the `svn/` sub-bundle.)
+> - **PHP Error Reporting check** — flags production-time modification of error settings, i.e.
+>   calls like `ini_set( 'display_errors', … )` / `error_reporting( … )` in shipped code.
+> - **Per-dependency `Requires Plugins` validation** — each slug in the header is now checked
+>   **individually** against the wp.org directory. A typo'd or non-directory slug (a Pro-only or
+>   self-hosted dependency) is an error; only directory-hosted slugs belong in that header.
+> - Plus: distinct visual styles per issue type, Unicode preserved in exported results, and
+>   improved WordPress-function compatibility data (feeding the `Requires at least` gate below).
 
 **Check categories:**
 - **Plugin Repository Requirements** — directory-guideline compliance (headers, readme, naming,

@@ -22,7 +22,7 @@ The documentation is split into focused, single-topic files. `SKILL.md` is the r
 
 | File | What it covers |
 |---|---|
-| [`SKILL.md`](./wp-elementor-skill/SKILL.md) | **Router & Golden Rules.** Default assumptions, architecture decision tree, output format, widget boilerplate map, current stack (WP 7.0.2 / Elementor 4.x / WC 10.9). Start here. |
+| [`SKILL.md`](./wp-elementor-skill/SKILL.md) | **Router & Golden Rules.** Default assumptions, architecture decision tree, output format, widget boilerplate map, current stack (WP 7.1 / Elementor 4.x / WC 11.0). Start here. |
 | [`scaffolding.md`](./wp-elementor-skill/scaffolding.md) | **Plugin & Theme Structure.** Plugin bootstrap pattern, singleton class, child theme setup, Custom Post Types, taxonomy registration, AJAX handlers, V4 widget registration reminder. |
 | [`php-standards.md`](./wp-elementor-skill/php-standards.md) | **PHP Best Practices.** Sanitization, escaping, nonce verification, `WP_Error`, transient caching, `declare(strict_types=1)`, WP 6.8+ bcrypt/BLAKE2b password hashing. |
 | [`js-css-standards.md`](./wp-elementor-skill/js-css-standards.md) | **Frontend Standards.** ES6+ IIFE pattern, `elementor/frontend/init` event, WP 6.3+ defer/async enqueue API, `wp_add_inline_script`, BEM CSS, scoped design tokens, Elementor 4.x selector rules. |
@@ -59,10 +59,10 @@ All patterns in this repository target a modern production stack. Unless a speci
 
 | Component | Version | Notes |
 |---|---|---|
-| **WordPress** | **7.0+** | "Armstrong", released May 20, 2026; current point release **7.0.2** (security, July 17, 2026). Minimum PHP raised to 7.4 (7.2/7.3 dropped). RTC stored in a dedicated core table. **WP 7.1 lands August 19, 2026.** |
-| **PHP** | 8.3+ recommended | 7.4 is the WP 7.0 minimum. PHP 8.4 and 8.5 carry a "beta support" label — possible deprecation notices. |
-| **Elementor (free + Pro)** | **4.2.0** | Both hit 4.2.0 on **July 20, 2026** (version numbers are independent). Free 4.2.0 adds Atomic Grid; Pro 4.2.0 adds Atomic Loop. 4.0.0 (Mar 30, 2026) made the Atomic Editor stable and default for new installs. **V3 `Widget_Base` remains fully supported — all skill code targets V3.** |
-| **WooCommerce** | **10.9+** | HPOS enabled by default for new stores since 8.2. WC 10.7 (April 14, 2026) disabled HPOS "sync on read" by default; WC 10.9 (June 23, 2026) defers Store API draft-order creation — see `woocommerce.md`. |
+| **WordPress** | **7.1** | **"Mary Lou", released August 19, 2026.** The post editor is now **always iframed**; `__next40pxDefaultSize` is a no-op; list-table row headers moved off `th.check-column`; jQuery UI 1.14.2; new SVG Icon API. (7.0 "Armstrong" was May 20; that branch ended at 7.0.4.) |
+| **PHP** | 8.3+ recommended | 7.4 is the minimum (unchanged in 7.1). PHP 8.4 and 8.5 carry a "beta support" label — possible deprecation notices. Database: MariaDB 10.11+ / MySQL 8.0+. |
+| **Elementor (free + Pro)** | free **4.2.3** / Pro **4.2.2** | Both Aug 19, 2026 — the differing numbers are normal, the two plugins version independently. 4.2.0 (Jul 20) added Atomic Grid (free) and Atomic Loop (Pro); 4.0.0 (Mar 30) made the Atomic Editor stable and default for new installs. ⚠️ Still declares *"Tested up to 7.0.4"* — no WP 7.1 support announced yet. **V3 `Widget_Base` remains fully supported — all skill code targets V3.** |
+| **WooCommerce** | **11.0+** | **11.0 (Aug 4, 2026) removed the product editor beta** and its extension points, and bundles **Action Scheduler 4.0** (`$unique` now includes arguments). HPOS default-on since 8.2; 10.7 disabled HPOS "sync on read"; 10.9 defers Store API draft-order creation — see `woocommerce.md`. |
 
 ---
 
@@ -81,34 +81,30 @@ Once installed as a skill in Claude:
 This skill is audited against official live sources after every significant release.
 The full round-by-round history lives in [`CHANGELOG.md`](./CHANGELOG.md).
 
-**Latest — Round 31 (July 27, 2026):** Three field-verified pieces from real plugin work.
-**(1) Editor panel tabs** — new `elementor-extending.md` §5 documents Elementor 4.x's official
-`elementorV2.editorElementsPanel.injectTab()` for adding your own tab beside Widgets / Components /
-Globals (sourced from Elementor 4.2.0's shipped package, built end-to-end), plus the
-regex-into-`elementor/editor/footer` anti-pattern and two linter-invisible traps: REST-called
-helpers must live outside the `is_admin()` block, and the 4.x panel is **light**, with real token
-values tabled. **(2) Dynamic-tag parents** — `elementor-patterns.md` now covers the `Tag` vs
-`Data_Tag` split (an image tag on the wrong parent silently returns nothing) and the rule that
-empty image/gallery fields must return an empty value, never a placeholder. **(3) The no-default
-colour rule** — `SKILL.md` §5 + `field-notes.md` §4: a colour control with a `default` can't be
-switched off, so state colours are empty controls writing direct CSS; plus five more live-editor
-gotchas (theme selector specificity, a `container-type` height blow-up, independent taxonomy
-guards, taxonomy renames, dead `accent-color`).
+**Latest — Round 34 (August 23, 2026):** ⚠️ **A breaking-change round.** **WordPress 7.1
+"Mary Lou"** (Aug 19) makes the **post editor iframe unconditional** — editor JS using the global
+`document`/`window` now hits the wrong document and must use the canvas node's `ownerDocument` /
+`defaultView` (this corrected a now-false claim in the skill that the iframe was "punted to a later
+release"); `__next40pxDefaultSize` became a no-op; list-table markup moved the row header off
+`th.check-column`; jQuery UI → 1.14.2. New: the **SVG Icon API** — whose sanitizer allowlists only
+`<svg>`, `<path>`, `<polygon>`, silently stripping `<g>`/`<circle>`/`<rect>`/`<use>`. **WooCommerce
+11.0** *removed* the product editor beta and its extension points outright, and **Action Scheduler
+4.0** changed `$unique` to include arguments — quietly breaking any "only one ever queued" guard.
+**Plugin Check 2.1.0** adds an SVN-repository scan, a PHP-error-reporting check, and per-dependency
+`Requires Plugins` validation. Elementor is at **free 4.2.3 / Pro 4.2.2** but still declares
+*"Tested up to 7.0.4"* — and has now publicly stated a third-party Atomic API is **not** coming
+soon, so the V3 `Widget_Base` stance is reaffirmed.
 
-**Round 30 (July 22, 2026):** Live-source currency sweep. **WordPress 7.0.2** (security,
-July 17), **Elementor free + Pro both at 4.2.0** (July 20 — free adds Atomic Grid, Pro adds Atomic
-Loop; this also corrected a Round 21 error that had dated 4.2.0 to June 5), and **WooCommerce
-10.9.4** — with new `woocommerce.md` notes on the Store API's deferred draft-order creation and
-the product editor beta's final deprecation window. Re-verified that developers.elementor.com
-still documents only V3 `Widget_Base` — the skill's V3 stance stands. Round 29 (same day) folded
-the lessons of a **real wordpress.org review cycle** into `debugging.md` (`$wpdb`
-sniff-suppression mechanics, ZAP triage), `wp-org-guidelines.md` ("Hard lines from real 2026
-reviews"), `wordpress-apis.md` (sanitize-callback purity), `php-standards.md` (transients under a
-persistent object cache), and `field-notes.md` (security headers, CSP scope, cache-deception
-defense, packaging).
+**Rounds 31–33 (July 27 – August 10, 2026):** field-verified lessons from real plugin work —
+**editor panel tabs** via Elementor 4.x's official `elementorV2.editorElementsPanel.injectTab()`
+(`elementor-extending.md` §5), the **`Tag` vs `Data_Tag`** dynamic-tag split (wrong parent = a
+silently empty image tag) plus empty-value discipline for image/gallery tags, the **no-default
+colour rule** (a colour control with a `default` can never be switched off), **shipping a
+translation** for a directory-hosted plugin, PHPStan config for Elementor plugins, and **two ways
+your own CSS disables your own controls**.
 
-**Next scheduled audit:** **WordPress 7.1 — August 19, 2026** (Beta 1 shipped July 15), or a major
-Elementor release if one lands first.
+**Next scheduled audit:** WordPress **7.1.x** point releases, an Elementor release declaring **7.1
+compatibility**, or WooCommerce 11.1 — whichever lands first.
 
 ---
 

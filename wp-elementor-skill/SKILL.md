@@ -37,7 +37,7 @@ for the task at hand.
 | Performance checklists (frontend + backend), speculative loading, IE conditional comments | **performance.md** |
 | Accessibility checklist, WCAG 2.2 AA, ARIA patterns | **performance.md** |
 | **Hard-won production gotchas** — widget lifecycle fatals, `content_template()` escaping, CSS-in-Elementor footguns, transactional email, wp.org review/packaging, embedding apps, AJAX/loop re-rendering, dynamic CSS in loops, Swiper on optimised sites | **field-notes.md** |
-| **wordpress.org submission** — the 18 Directory Guidelines, Plugin Check 2.0.0 categories/usage, review process, required headers/readme | **wp-org-guidelines.md** |
+| **wordpress.org submission** — the 18 Directory Guidelines, Plugin Check 2.1.0 categories/usage, review process, required headers/readme | **wp-org-guidelines.md** |
 | **Subversion (SVN)** — deploying/tagging a release on the wordpress.org plugin/theme SVN (trunk/tags/assets), the daily work cycle, branching/merging, properties, repo admin | **svn/svn.md** (self-contained sub-bundle; `svn/references/` goes deeper) |
 | **Debugging & static analysis** — PHPCS+WPCS, PHPStan, Plugin Check, `WP_DEBUG`/Query Monitor, Elementor Safe Mode/cache, symptom→cause table | **debugging.md** |
 | **Common WordPress APIs** — admin settings page (Settings + Options API), `register_meta`, roles/capabilities, WP-Cron, internationalization (i18n) | **wordpress-apis.md** |
@@ -130,23 +130,85 @@ Quickly assess — **only ask if the answer would change the code**:
 
 | Component | Version | Notes |
 |---|---|---|
-| **WordPress** | **7.0+** | "Armstrong", released May 20, 2026; current point release **7.0.2** (security, Jul 17, 2026). Minimum PHP raised to **7.4** (7.2/7.3 dropped — sites still on them stay pinned to 6.9.x). No multisite assumed. **WP 7.1 is scheduled for Aug 19, 2026.** |
-| **PHP** | **8.3** recommended | 7.4 = WP 7.0 minimum. 8.4 / 8.5 = "beta support" (possible deprecation notices). 8.2 fully compatible but no longer the recommended default. |
-| **Elementor (free + Pro)** | **4.2+** | Separate plugins with **independent version numbers**. 4.0.0 (Mar 30, 2026) made the Atomic Editor stable + default for new installs; **free and Pro both reached 4.2.0 on Jul 20, 2026** (free: Atomic Grid; Pro: Atomic Loop). **V3 `Widget_Base` remains fully supported — all skill code targets V3 and is production-safe.** |
-| **WooCommerce** | **10.9+** | HPOS default-on since 8.2. 10.7 (Apr 14, 2026) disabled HPOS "sync on read" by default; 10.9 (Jun 23, 2026) defers Store API draft-order creation — see woocommerce.md. |
+| **WordPress** | **7.1** | **"Mary Lou", released Aug 19, 2026** (7.0 "Armstrong" was May 20; the 7.0 branch ended at 7.0.4, Aug 12). Minimum PHP **7.4** (7.2/7.3 dropped — sites still on them stay pinned to 6.9.x). No multisite assumed. **7.1 makes the post editor iframe unconditional — see below.** |
+| **PHP** | **8.3** recommended | 7.4 = minimum. 8.4 / 8.5 = "beta support" (possible deprecation notices). 8.2 fully compatible but no longer the recommended default. |
+| **Elementor (free + Pro)** | **4.2+** | Separate plugins with **independent version numbers** — currently **free 4.2.3 / Pro 4.2.2** (both Aug 19, 2026). 4.0.0 (Mar 30, 2026) made the Atomic Editor stable + default for new installs; 4.2.0 (Jul 20) added Atomic Grid (free) and Atomic Loop (Pro). ⚠️ Elementor's header still reads **"Tested up to: 7.0.4"** — it has **not** declared WP 7.1 support. **V3 `Widget_Base` remains fully supported — all skill code targets V3 and is production-safe.** |
+| **WooCommerce** | **11.0+** | **11.0 (Aug 4, 2026) REMOVED the product editor beta** and bumped to **Action Scheduler 4.0.0** (breaking dedup change). HPOS default-on since 8.2; 10.7 disabled HPOS "sync on read"; 10.9 defers Store API draft-order creation — see woocommerce.md. |
 
 **Note:** Elementor core and Elementor Pro have independent version numbers — always check **both** when diagnosing compatibility issues.
+
+### WordPress 7.1 — what changed for plugin / Elementor devs
+
+WP 7.1 **"Mary Lou"** shipped **August 19, 2026** (WordCamp US). Unlike 7.0, this release
+contains **four changes that can break a shipped plugin** — they are listed first. No PHP or
+WordPress minimum changed.
+
+**🔴 Breaking — audit your plugin for these:**
+
+1. **The post editor is now ALWAYS in an iframe** — including on sites registering legacy meta
+   boxes, which was the last remaining escape hatch. Editor JavaScript that reaches for the
+   global `document` / `window` now targets the **wrong document**. Use the canvas element's
+   **`ownerDocument`** and **`defaultView`** instead:
+   ```js
+   // ❌ breaks in 7.1 — this is the OUTER document, not the editor canvas
+   document.querySelector( '.my-block' ).classList.add( 'ready' );
+
+   // ✅ resolve the document from a node you already own inside the canvas
+   const doc  = myCanvasNode.ownerDocument;
+   const view = doc.defaultView;                   // the iframe's `window`
+   doc.querySelector( '.my-block' )?.classList.add( 'ready' );
+   view.requestAnimationFrame( … );
+   ```
+   Injected `<style>`/`<link>` must go into the **canvas** document too, or it styles nothing.
+   **Elementor's own editor is unaffected** (it is not the block editor) — this hits block
+   registrations, meta boxes, and any block-editor integration your plugin ships.
+2. **`__next40pxDefaultSize` is now a no-op** on `@wordpress/components` — **remove the prop**
+   entirely; there is no replacement. Form controls render at 40px unconditionally.
+3. **List-table markup changed:** the row header moved from the checkbox column to the **title**
+   column. Any CSS/JS selector keyed on `th.check-column` (or assuming the row header's position)
+   breaks — audit custom admin list tables and column callbacks.
+4. **jQuery UI updated to 1.14.2.** Test anything depending on jQuery UI behaviour or styling.
+
+**🟢 New and useful:**
+
+- **SVG Icon API** (public in 7.1) — register icons and whole collections, render server-side,
+  read over REST: `wp_register_icon_collection()`, `wp_register_icon()`, `wp_get_icon()`.
+  ⚠️ SVGs pass through a **conservative allowlist — only `<svg>`, `<path>` and `<polygon>` survive**.
+  A `<g>`, `<circle>`, `<rect>` or `<use>` in your icon is stripped silently, so convert shapes to
+  paths before registering. (This is a *core* API — Elementor widgets still ship their own SVGs;
+  see `elementor-extending.md` §8 and the "don't `wp_kses()` inline SVG" rule in `field-notes.md` §6.)
+- **Abilities API matured:** `wp_get_abilities()` filtering, **execution-lifecycle hooks**, custom
+  validation, a unified `public` exposure flag, and client-compatible JSON-Schema preparation.
+  Registration timing rules from 7.0 are unchanged (see the 7.0 section below).
+- **Global Styles / `theme.json`:** responsive style variations with **configurable breakpoints**,
+  pseudo-state styling (`:hover` / `:focus` / `:active`), and `text-shadow` support.
+- **Media:** client-side image processing in the browser via **WebAssembly** (compression/resizing
+  no longer hit the server), infinite scroll in the Media Library, and registration of multiple
+  image sizes at once. Multisite now enforces upload limits on **media sideloading**.
+- **Persistent admin bar** across editor screens — review any custom toolbar nodes for behaviour
+  in the editor context.
+- **Design System:** semantic design tokens for theming admin UI (relevant if you build admin or
+  editor panels — compare the Elementor panel tokens in `elementor-extending.md` §5).
+- **DataViews / DataForm** APIs matured for data-driven admin interfaces.
+- **React stays on 18.3** — React 19 was deferred again. Don't bundle `react/jsx-runtime`
+  yourself, and avoid string refs / `defaultProps`, which fail under the experimental React 19 flag.
+- Conditional block-CSS loading can affect **remote content pulls** — verify if you render blocks
+  outside a normal page request.
+
+_Sources: wordpress.org/news/2026/08/mary-lou/ · make.wordpress.org/core/2026/08/05/wordpress-7-1-field-guide/ ·
+developer.wordpress.org/news/2026/08/whats-new-for-developers-august-2026/_
 
 ### WordPress 7.0 — what changed for plugin / Elementor devs
 
 WP 7.0 "Armstrong" shipped **May 20, 2026** (delayed from the original April 9 target while
 the RTC storage layer was redesigned — see below). Everything below is **opt-in and
-non-breaking**; most plugin/Elementor work is unaffected.
+non-breaking**; most plugin/Elementor work is unaffected. It remains relevant because 7.1
+changed none of it.
 
 - **Minimum PHP is now 7.4** (7.2/7.3 dropped). The skill's recommended baseline stays
   **PHP 8.3**. Bump your plugin's `Requires PHP` header to 7.4 only once you target WP 7.0+
   exclusively. No new DB minimum is enforced; `wordpress.org/about/requirements/` recommends
-  **MariaDB 10.6+ or MySQL 8.0+**.
+  **MariaDB 10.11+ or MySQL 8.0+** (the MariaDB floor was raised from 10.6; re-verified Aug 2026).
 - **Real-Time Collaboration (RTC):** simultaneous multi-author block editing (CRDT-based, via
   an HTTP-polling sync provider — not WebRTC). Data is stored in a **dedicated core database
   table**; an earlier `wp_post_meta` / `wp_sync_storage` design was rejected, and building the
@@ -165,25 +227,35 @@ non-breaking**; most plugin/Elementor work is unaffected.
   `function_exists()` guards don't count (see `debugging.md` §1).
 - **Connectors UI** (Settings → Connectors) for managing AI provider credentials, and a
   **Command Palette** in wp-admin.
-- **Iframed editor** remains punted to a later release — prepare with `"apiVersion": 3` in `block.json`.
+- **Iframed editor** was still conditional in 7.0 — **7.1 makes it unconditional.** See the 7.1
+  section above; `"apiVersion": 3` in `block.json` is now table stakes, not preparation.
 
 _Sources: make.wordpress.org/core/2026/01/09/dropping-support-for-php-7-2-and-7-3/ ·
 make.wordpress.org/core/2026/04/22/wordpress-7-0-release-party-updated-schedule/ ·
 wordpress.org/about/requirements/_
 
-> 📌 **PHP support labels (WP 7.0):** PHP 7.4–8.3 fully compatible; **8.3 recommended**;
+> 📌 **PHP support labels (unchanged in WP 7.1):** PHP 7.4–8.3 fully compatible; **8.3 recommended**;
 > 8.4 (WP 6.7+) and 8.5 (WP 6.9+) carry a "beta support" label (possible deprecation notices).
 > Source: make.wordpress.org/core/handbook/references/php-compatibility-and-wordpress-versions/
 
-> ✅ **Elementor 4.x status (current: 4.2.0 free AND Pro, July 20, 2026):** Elementor 4.0.0
-> (Mar 30, 2026, free + Pro) made the **Atomic Editor stable and the default for new installs**
-> and added Atomic Forms, Pro Interactions, and Component creation. Updating to 4.x leaves
-> **existing sites untouched** — V3 widgets and V4 Atomic Elements coexist on the same page;
-> Atomic features are toggled at WP Admin → Elementor → Editor → Settings. The V4 Atomic
-> Element PHP extension API is stable, but third-party extension docs are still being finalized
-> (re-verified July 22, 2026: developers.elementor.com still documents only V3) — so
-> **continue using V3 `Widget_Base`** for all third-party widgets. It is the correct,
-> production-safe API and all skill code targets it.
+> ✅ **Elementor 4.x status (current: free 4.2.3 / Pro 4.2.2, both Aug 19, 2026):** Elementor
+> 4.0.0 (Mar 30, 2026, free + Pro) made the **Atomic Editor stable and the default for new
+> installs** and added Atomic Forms, Pro Interactions, and Component creation. Updating to 4.x
+> leaves **existing sites untouched** — V3 widgets and V4 Atomic Elements coexist on the same
+> page; Atomic features are toggled at WP Admin → Elementor → Editor → Settings.
+>
+> **There is still NO third-party API for building Atomic Elements, and Elementor has said so
+> explicitly** — they will not release one soon and *advise against* integrating with Atomic
+> internals until they announce it (elementor/elementor GitHub Discussion #32950). Atomic
+> Elements are documented only as a **data structure**
+> (developers.elementor.com/docs/data-structure/atomic-elements). So **continue using V3
+> `Widget_Base`** for all third-party widgets — it is the correct, production-safe API and all
+> skill code targets it. *(Re-verified Aug 23, 2026 — unchanged since the July check.)*
+>
+> ⚠️ **Elementor has not declared WP 7.1 compatibility yet.** As of free 4.2.3 / Pro 4.2.2 the
+> `Tested up to` header reads **7.0.4**, three days after WP 7.1 shipped. That is normal lag,
+> not a known incompatibility — but when a client reports editor breakage on a fresh 7.1 site,
+> check Elementor's current `Tested up to` before debugging your own code.
 >
 > **V4 Atomic Elements that now ship by default (awareness only — not third-party-buildable yet):**
 > Div Block & Flexbox Container (layout); **Atomic Grid** — advanced row/column layouts (free

@@ -10,7 +10,7 @@ warnings.
 
 > ⚠️ **WooCommerce 10.7 (released April 14, 2026) — HPOS "Sync on Read" disabled by default:**
 > As of WooCommerce 10.7, the HPOS **"sync on read"** mechanism is disabled by default
-> (current stable is **10.9.4**, released July 7, 2026).
+> (current stable is **11.0.1**, released Aug 10, 2026).
 > **What this means:** "Sync on read" was a safety net that detected when order data was written
 > directly to the legacy `wp_posts`/`wp_postmeta` tables (bypassing WooCommerce's API) and
 > pulled those changes back into HPOS on the next read. With this disabled, any plugin or custom
@@ -51,8 +51,8 @@ add_action( 'before_woocommerce_init', function() {
 >   (fewer orphaned `checkout-draft` rows). Any code that assumes a draft order row exists as
 >   soon as a checkout session starts — meta writes, hooks keyed on the draft order, analytics
 >   on draft rows — must handle the order appearing late.
-> - **Product editor beta enters its FINAL deprecation window** — removed in WooCommerce 11.0.
->   Don't build against it; target the classic product screen or blocks.
+> - **Product editor beta enters its FINAL deprecation window** — ✅ **removed in WC 11.0, see
+>   below.** Don't build against it; target the classic product screen.
 > - **Abilities/MCP:** rebuilt canonical domain abilities for product & order operations
 >   (query/create/update products, manage orders) on the WordPress **Abilities API** — see
 >   `SKILL.md` (WP 7.0 section) for the `wp_abilities_api_init` registration rules.
@@ -61,6 +61,37 @@ add_action( 'before_woocommerce_init', function() {
 > - **Transactional email logging in core** (WooCommerce → Status → Logs) — no separate
 >   logging plugin needed when debugging mail.
 > Source: developer.woocommerce.com/2026/06/23/woocommerce-10-9/
+
+> 🔴 **WooCommerce 11.0 (released Aug 4, 2026; current 11.0.1, Aug 10) — two breaking changes.**
+> HPOS behaviour and the Order API above are **unchanged**; these are the items that break code:
+>
+> **1. The product editor beta is GONE.** The removal is complete, not deprecated: the
+> `@woocommerce/product-editor` package, the block-based product screens in WooCommerce Admin,
+> the feature flag/toggle, the editor-specific routes and menu entries, **and their extension
+> points**. The **classic product editor is now the only product editing experience in core.**
+> - **Product data is untouched** — no migration, no data loss; existing products edit normally.
+> - **What breaks:** any extension that registered a block, field, or tab *through the product
+>   editor's extension points*, or that linked to a block-editor product route. Those hooks no
+>   longer exist — port the UI to the classic screen (`add_meta_box()`, the standard product data
+>   tabs via `woocommerce_product_data_tabs` / `woocommerce_product_data_panels`).
+> - Don't feature-detect the flag any more; it is not coming back.
+>
+> **2. Action Scheduler 4.0.0 is bundled**, and its **uniqueness rule changed**:
+> - **`$unique` now includes the action's ARGUMENTS in the dedup check.** Previously only the
+>   hook + group were compared. Two `as_schedule_single_action()` calls with the same hook and
+>   group but *different args* used to block each other and now **both schedule**. If you relied
+>   on the old behaviour as a "only one of these ever queued" guard, that guard is gone — expect
+>   more actions, and dedupe on your own key if you need the old semantics.
+> - **Cleanup of old actions moved** from inline work on every queue batch to a **dedicated daily
+>   job at 3 AM site time.** Tests or monitoring that assumed old rows disappear during normal
+>   processing need adjusting (a custom queue cleaner can restore inline behaviour).
+> - Requires WP 6.8+. See `wordpress-apis.md` §5 for when to reach for Action Scheduler at all.
+>
+> **Also in 11.0 (experimental — don't ship against these yet):** abandoned-cart emails,
+> block-based email editing, and a new Settings UI.
+> Sources: developer.woocommerce.com/2026/08/04/woocommerce-11-0/ ·
+> developer.woocommerce.com/2026/06/02/product-editor-beta-retiring/ ·
+> developer.woocommerce.com/2026/06/17/changes-to-action-scheduler/
 
 ---
 

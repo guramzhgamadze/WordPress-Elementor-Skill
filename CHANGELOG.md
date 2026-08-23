@@ -10,20 +10,72 @@ place instead of being scattered across the sub-files.
 
 | Component | Version | Released |
 |---|---|---|
-| WordPress | **7.0.2** ("Armstrong" 7.0: May 20, 2026) | July 17, 2026 (security) |
+| WordPress | **7.1** "Mary Lou" (7.0 "Armstrong": May 20, 2026; branch ended at 7.0.4) | August 19, 2026 |
 | PHP (recommended / minimum) | 8.3 / 7.4 | — |
-| Elementor (free + Pro, independent versions) | **4.2.0** both | July 20, 2026 |
-| WooCommerce | **10.9.4** (10.9.0: June 23, 2026) | July 7, 2026 |
+| Elementor (free + Pro, independent versions) | free **4.2.3** / Pro **4.2.2** — *"Tested up to 7.0.4"*, not 7.1 | August 19, 2026 (both) |
+| WooCommerce | **11.0.1** (11.0.0: Aug 4, 2026 — product editor beta removed) | August 10, 2026 |
+| Plugin Check | **2.1.0** | August 16, 2026 |
 
 **Sources:**
-- wordpress.org/download/releases/ (7.0.2 · 7.0.1) · make.wordpress.org/core/2026/07/03/wordpress-7-1-release-party-schedule/ (7.1 → Aug 19, 2026)
-- make.wordpress.org/core/2026/01/09/dropping-support-for-php-7-2-and-7-3/ (PHP 7.4 minimum)
-- wordpress.org/plugins/elementor/ + api.wordpress.org plugin info (free 4.2.0, Jul 20) · elementor.com/pro/changelog/ (Pro 4.2.0, Jul 20)
-- developer.woocommerce.com/releases/ · developer.woocommerce.com/2026/06/23/woocommerce-10-9/
+- wordpress.org/download/releases/ · wordpress.org/news/2026/08/mary-lou/ (7.1, Aug 19) · make.wordpress.org/core/2026/08/05/wordpress-7-1-field-guide/
+- developer.wordpress.org/news/2026/08/whats-new-for-developers-august-2026/ (iframed editor, Icon API, `__next40pxDefaultSize`)
+- wordpress.org/about/requirements/ (PHP 8.3 recommended; MariaDB 10.11+ / MySQL 8.0+)
+- api.wordpress.org plugin info: elementor (free 4.2.3) + plugin-check (2.1.0) · elementor.com/pro/changelog/ (Pro 4.2.2)
+- developer.woocommerce.com/releases/ · .../2026/08/04/woocommerce-11-0/ · .../2026/06/17/changes-to-action-scheduler/
 
 ---
 
 ## Audit rounds
+
+### Round 34 — August 23, 2026 — WordPress 7.1 "Mary Lou" + WooCommerce 11.0 (breaking-change round)
+The first currency sweep in this skill's history where the upstream releases carry **real breaking
+changes** rather than additive features. All facts verified against wordpress.org, the 7.1 Field
+Guide, developer.wordpress.org/news, the wp.org plugins API, elementor.com/pro/changelog and
+developer.woocommerce.com. No file count change (54).
+
+**WordPress 7.1 "Mary Lou" (Aug 19, 2026)** — new `SKILL.md` section, breaking items first:
+- **The post editor is now ALWAYS iframed**, including for sites registering legacy meta boxes —
+  the last escape hatch is gone. Editor JS touching the global `document` / `window` now targets
+  the wrong document; use the canvas node's **`ownerDocument`** / **`defaultView`** (code example
+  included), and inject styles into the canvas document. **Corrects a now-false claim** in the
+  skill, which said the iframed editor "remains punted to a later release." Noted explicitly that
+  **Elementor's own editor is unaffected** — this hits block/meta-box integrations.
+- **`__next40pxDefaultSize` is a no-op** — remove the prop, no replacement.
+- **List-table markup changed** — the row header moved from the checkbox column to the title
+  column; selectors keyed on `th.check-column` break.
+- **jQuery UI → 1.14.2**; **React stays 18.3** (React 19 deferred again).
+- New: **SVG Icon API** (`wp_register_icon_collection()` / `wp_register_icon()` / `wp_get_icon()`)
+  — with the trap that its sanitizer allowlists **only `<svg>`, `<path>`, `<polygon>`**, so `<g>`,
+  `<circle>`, `<rect>` and `<use>` are silently stripped; **Abilities API** maturation (filtering,
+  execution-lifecycle hooks, unified `public` flag); `theme.json` responsive breakpoints +
+  pseudo-states; WebAssembly client-side media processing; persistent admin bar; Design System
+  tokens; DataViews/DataForm.
+- **Corrected the DB floor**: MariaDB **10.11+** (was documented as 10.6+), MySQL 8.0+.
+
+**WooCommerce 11.0 / 11.0.1 (Aug 4 / Aug 10, 2026)** — new `woocommerce.md` section:
+- **The product editor beta is REMOVED**, not deprecated — the `@woocommerce/product-editor`
+  package, block-based product screens, feature flag, routes, menu entries **and their extension
+  points**. Extensions that registered UI through those points must port to the classic screen
+  (`woocommerce_product_data_tabs` / `_panels`). Product data is untouched; no migration.
+  (Round 30 had recorded this as a *future* removal — now realised and rewritten as fact.)
+- **Action Scheduler 4.0.0**: `$unique` deduplication **now includes the action's arguments**, so
+  same-hook/same-group actions differing only in args no longer block each other — any "only one
+  ever queued" guard built on the old behaviour is silently gone. Cleanup also moved from inline
+  processing to a **daily 3 AM job**. Cross-referenced from `wordpress-apis.md` §5.
+
+**Plugin Check 2.0.0 → 2.1.0 (Aug 16, 2026)** — updated in `wp-org-guidelines.md`, `debugging.md`
+and the router. Three new checks can flag a plugin that passed under 2.0.0: an **SVN Checker** that
+scans the wp.org **repository** (not just your zip) for unexpected files, a **PHP Error Reporting**
+check for production `ini_set( 'display_errors' )` / `error_reporting()`, and **per-dependency
+`Requires Plugins` validation** against the directory (a Pro-only or self-hosted slug is an error).
+
+**Elementor** — free **4.2.3** / Pro **4.2.2**, both Aug 19, 2026; the differing numbers confirm the
+"independent version numbers" correction from Round 30. Flagged that Elementor's `Tested up to`
+still reads **7.0.4** — no declared WP 7.1 support yet (normal lag, but check it before debugging
+your own code on a 7.1 site). **V3 stance re-verified and strengthened**: Elementor has now stated
+publicly that a third-party Atomic API is *not* coming soon and advises against integrating with
+Atomic internals (GitHub Discussion #32950) — Atomic Elements remain documented only as a data
+structure. Keep targeting V3 `Widget_Base`.
 
 ### Round 33 — August 10, 2026 — two ways your own CSS disables your own controls
 Both found by debugging a real "this control does nothing" report, and both invisible to every

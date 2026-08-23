@@ -20,7 +20,7 @@ Three complementary tools — each catches a different class of bug:
 |---|---|---|
 | **PHPCS + WPCS** | Coding standards, **security** (`WordPress.Security.*`: unescaped output, unsanitized input, missing nonces), naming/prefix, i18n | Type errors, logic bugs, runtime behaviour |
 | **PHPStan** (WordPress) | **Type & logic** bugs — wrong arg types, impossible conditions, dead code, null misuse, undefined methods | Coding-style / escaping policy |
-| **Plugin Check 2.0.0** | The **review-grade superset** — bundles PHPCS+WPCS plus repo/guideline/perf/a11y/i18n checks (what wp.org reviewers run) | Guarantees nothing about approval (human review is still mandatory) |
+| **Plugin Check 2.1.0** | The **review-grade superset** — bundles PHPCS+WPCS plus repo/guideline/perf/a11y/i18n checks (what wp.org reviewers run); 2.1.0 adds an SVN-repo scan, a PHP-error-reporting check, and per-dependency `Requires Plugins` validation | Guarantees nothing about approval (human review is still mandatory) |
 
 ### PHPCS + WPCS — WordPress Coding Standards
 
@@ -119,7 +119,7 @@ method** (the white-screen fatal), a dead `is_string()` guard after `sanitize_te
 `\Elementor\Widget_Base` stub** that instantiates the widget so signature mismatches fatal at
 class-declaration time during testing, not on the live site (see `field-notes.md` §1, §11).
 
-### Plugin Check 2.0.0 — the reviewer's tool
+### Plugin Check 2.1.0 — the reviewer's tool
 
 Full categories and usage are in **`wp-org-guidelines.md`**. For debugging:
 ```bash

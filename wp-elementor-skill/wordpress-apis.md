@@ -218,6 +218,14 @@ wp_schedule_single_event( time() + 10 * MINUTE_IN_SECONDS, 'myplugin_one_off', [
 > For **heavy, high-volume, or must-complete** background work (imports, bulk emails, queues),
 > prefer **Action Scheduler** (the battle-tested queue bundled with WooCommerce) over raw WP-Cron —
 > it persists jobs to the DB, retries on failure, and processes in batches.
+>
+> ⚠️ **Action Scheduler 4.0.0 (bundled with WooCommerce 11.0, Aug 2026) changed `$unique`.**
+> Deduplication now compares the action's **arguments** as well as its hook and group. Two
+> `as_schedule_single_action()` calls that differ only in args used to block each other and now
+> **both schedule** — if you used `$unique` as a "only ever one of these queued" guard, that guard
+> is gone; dedupe on your own key instead. Cleanup of old actions also moved from inline
+> processing to a **daily 3 AM job**. Requires WP 6.8+.
+> Source: developer.woocommerce.com/2026/06/17/changes-to-action-scheduler/
 
 ---
 
