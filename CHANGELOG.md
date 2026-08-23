@@ -27,6 +27,56 @@ place instead of being scattered across the sub-files.
 
 ## Audit rounds
 
+### Round 35 — August 23, 2026 — new file: the database layer (`mariadb.md`)
+Sourced from the official **MariaDB Knowledge Base** (mariadb.com/kb) plus the WordPress plugin
+handbook. **File count 54 → 55** (15 core reference files + 35 widget boilerplates + the 5-file SVN
+sub-bundle) — the first new core file since Round 27.
+
+Rationale: the skill had `$wpdb` **security** guidance (escaping, `prepare()`, the sniffs that fire)
+spread across `php-standards.md` and `debugging.md`, but nothing on **schema and performance** — no
+`dbDelta()`, no charset/collation, no indexing, no `EXPLAIN`. That is the gap this fills, scoped as
+*"the database as a WordPress plugin developer meets it"* rather than a generic MariaDB manual.
+
+- **§1 Versions** — WP recommends **MariaDB 10.11+ / MySQL 8.0+**; runtime detection via
+  `$wpdb->db_version()` / `db_server_info()`, and the note that there is no `Requires MySQL` header,
+  so detect-and-degrade rather than documenting a requirement.
+- **§2 Charsets + the `varchar(191)` rule** — `utf8` is **still an alias for `utf8mb3`** in MariaDB
+  10.6+ (so a `utf8` column silently cannot hold an emoji); always use `$wpdb->get_charset_collate()`,
+  both for correctness and so custom tables stay JOIN-able with core (mismatched collations throw
+  `Illegal mix of collations` at *runtime*). Derives the 191 figure from the official InnoDB limits:
+  the 767-byte single-column prefix cap on `COMPACT`/`REDUNDANT` ÷ 4 bytes per `utf8mb4` char — which
+  is exactly why core declares indexed strings `varchar(191)`.
+- **§3 Custom tables** — full `dbDelta()` example plus its seven unforgiving formatting rules (one
+  field per line, **two spaces** after `PRIMARY KEY`, `KEY` not `INDEX`, no backticks, lengths
+  mandatory…), the fact that `register_activation_hook()` **does not fire on update** so migrations
+  version-gate on `plugins_loaded`, and that `dbDelta()` never drops anything. Cross-links the DDL
+  sniffs in `debugging.md` §1.
+- **§4 Indexes** — primary/unique/plain, the **leftmost-prefix rule** for composite indexes with
+  worked examples, when an index is *not* used (leading `%` wildcard, function-wrapped columns, low
+  selectivity), the official InnoDB ceilings (1,017 columns · 64 secondary indexes · 32 columns per
+  index · 65,535-byte rows), and that every index is a write tax.
+- **§5 `EXPLAIN` / `ANALYZE`** — the four columns worth reading and the red flags (`type: ALL`,
+  `key: NULL`, `Using filesort`, `Using temporary`); `ANALYZE` runs the query and gives `r_rows`, so
+  an estimate-vs-reality gap *is* the finding. Points at Query Monitor first for the WP workflow.
+- **§6 MariaDB ≠ MySQL** — the portability section, since a distributed plugin doesn't pick the
+  engine. **JSON is the headline:** MariaDB has no packed/native JSON type, stores it as TEXT and
+  **compares JSON as strings rather than by value**, so equality and sorting are not portable; the
+  `->`/`->>` operators are effectively MySQL-only. Plus `UNIX_TIMESTAMP()` returning 6 decimals on
+  MariaDB and none on MySQL, `EXTRACT(HOUR …)` range differences, and the unsupported-feature list.
+- **§7 `sql_mode`** — MariaDB's default since 10.2.4, what `STRICT_TRANS_TABLES` / `NO_ZERO_DATE`
+  do, and the trap that **MySQL enables `ONLY_FULL_GROUP_BY` by default while MariaDB does not** — a
+  `GROUP BY` that works on a MariaDB dev box can error on a user's MySQL host.
+- **§8 Full-text** — engine/column support, natural-language vs boolean mode, and the silent
+  failure that sends users to support: words under 3 (InnoDB) / 4 (MyISAM) characters are **ignored
+  with no error**. Advises `WP_Query`'s `s` for posts; `MATCH … AGAINST` only on your own table.
+- **§9 The `$wpdb` bridge** — bind values / whitelist identifiers, the ≥1-placeholder rule, `%s`
+  needs no quotes of yours, `%i` (WP 6.2+) for identifiers, and `base_prefix` vs `prefix` on multisite.
+
+Wired in: router **sub-file map** + **four** new §4 pattern-index rows (create a table, "key was too
+long"/emoji, slow query, cross-engine SQL). Cross-linked from `debugging.md` (schema questions live
+elsewhere), `wordpress-apis.md` (when options/meta are the wrong tool), and `performance.md`
+(`EXPLAIN` before guessing; index only what you filter/join/sort on).
+
 ### Round 34 — August 23, 2026 — WordPress 7.1 "Mary Lou" + WooCommerce 11.0 (breaking-change round)
 The first currency sweep in this skill's history where the upstream releases carry **real breaking
 changes** rather than additive features. All facts verified against wordpress.org, the 7.1 Field

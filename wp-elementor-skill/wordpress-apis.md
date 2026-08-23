@@ -130,6 +130,10 @@ function myplugin_render_settings_page(): void {
 > **Secrets in settings:** never re-render an API secret into `value="…"` — show an empty field
 > with a "leave blank to keep" sanitizer and store it encrypted (see `field-notes.md` §6).
 
+> **When options/meta are the wrong tool:** high-volume rows (logs, events, analytics, queues)
+> belong in a **custom table**, not in `wp_options` or post meta. `dbDelta()`, charset/collation,
+> indexing and the `varchar(191)` rule are in **`mariadb.md`**.
+
 ---
 
 ## 3. Metadata API — `register_meta` (REST- and Elementor-aware)

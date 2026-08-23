@@ -36,6 +36,7 @@ The documentation is split into focused, single-topic files. `SKILL.md` is the r
 | [`wp-org-guidelines.md`](./wp-elementor-skill/wp-org-guidelines.md) | **wordpress.org submission reference.** The 18 official Detailed Plugin Guidelines (paraphrased, actionable), Plugin Check 2.0.0 check-categories + how to run it (admin UI / WP-CLI, static vs runtime, auto-scan on updates), the AI-assisted-but-human-decided review process, required headers/`readme.txt` fields — plus **"Hard lines from real 2026 reviews"** learned in a live review cycle (no user-authored SQL, `AUTH_KEY` rule, external-services disclosure, protocol-endpoint nonce exceptions). |
 | [`debugging.md`](./wp-elementor-skill/debugging.md) | **Debugging & static-analysis workflow.** PHPCS+WPCS (install, `phpcs.xml.dist` ruleset, security sniffs), PHPStan (WordPress, typed-override fatals), Plugin Check, **`$wpdb` sniff-suppression mechanics from real review rounds**; `WP_DEBUG`/`WP_DEBUG_LOG`/`SCRIPT_DEBUG` + Query Monitor + WSOD diagnosis; Elementor Safe Mode / Regenerate Files & Data / element-cache freezes / editor-preview crashes; browser console + computed-styles; a symptom→cause→where-to-look table; and a security-scanner (ZAP) triage guide. |
 | [`wordpress-apis.md`](./wp-elementor-skill/wordpress-apis.md) | **Common WordPress APIs** the rest of the skill doesn't cover. Options API (WP 6.6+ boolean `autoload`), the review-safe **Settings API** admin-page pattern (nonce + single sanitize callback + escaped fields), Metadata API (`register_post_meta` + `show_in_rest`), Roles & Capabilities (gate by cap, not role), **WP-Cron** (+ the "not real cron" caveat, `DISABLE_WP_CRON` + system cron, Action Scheduler), and **Internationalization** (text-domain = slug, the WP 6.7 `init`-timing rule, JS i18n, `make-pot`). |
+| [`mariadb.md`](./wp-elementor-skill/mariadb.md) | **The database layer (MariaDB & MySQL).** Custom tables with `dbDelta()` and its strict formatting rules; charsets/collations and the `varchar(191)` index rule (derived from InnoDB's 767-byte prefix cap ÷ 4 bytes per `utf8mb4` char); indexes and the leftmost-prefix rule; reading `EXPLAIN`/`ANALYZE`; **MariaDB↔MySQL portability** (JSON is stored and compared differently — the big one); `sql_mode` traps like `ONLY_FULL_GROUP_BY`; full-text search and its silent minimum-word-length failure. Sourced from the official MariaDB Knowledge Base. |
 | [`svn/`](./wp-elementor-skill/svn/) | **Subversion (SVN) sub-bundle** (`svn/svn.md` + `svn/references/`) — a self-contained SVN reference distilled from the official SVN Book (1.7). Covers the daily work cycle, branching/tagging/merging, properties (`svn:ignore`/`svn:externals`/locking), and repository administration — plus a **WordPress.org plugin/theme SVN** worked example (`trunk`/`tags`/`assets`, tag a release, `Stable tag` match). This is how you *deploy* to the directory that `wp-org-guidelines.md` documents the *rules* for. |
 
 ---
@@ -81,7 +82,16 @@ Once installed as a skill in Claude:
 This skill is audited against official live sources after every significant release.
 The full round-by-round history lives in [`CHANGELOG.md`](./CHANGELOG.md).
 
-**Latest — Round 34 (August 23, 2026):** ⚠️ **A breaking-change round.** **WordPress 7.1
+**Latest — Round 35 (August 23, 2026):** **New file — [`mariadb.md`](./wp-elementor-skill/mariadb.md),
+the database layer** (54 → **55 files**), sourced from the official MariaDB Knowledge Base. The skill
+had `$wpdb` *security* guidance but nothing on *schema and performance*: custom tables with
+`dbDelta()` and its unforgiving formatting rules, why WordPress indexes strings at **`varchar(191)`**
+(InnoDB's 767-byte prefix cap ÷ 4 bytes per `utf8mb4` character), the leftmost-prefix rule for
+composite indexes, reading `EXPLAIN`, and — because a distributed plugin doesn't choose its engine —
+**MariaDB↔MySQL portability**, where JSON is the headline: MariaDB stores it as TEXT and compares it
+**as a string, not by value**, so JSON equality and sorting are not portable.
+
+**Round 34 (August 23, 2026):** ⚠️ **A breaking-change round.** **WordPress 7.1
 "Mary Lou"** (Aug 19) makes the **post editor iframe unconditional** — editor JS using the global
 `document`/`window` now hits the wrong document and must use the canvas node's `ownerDocument` /
 `defaultView` (this corrected a now-false claim in the skill that the iframe was "punted to a later

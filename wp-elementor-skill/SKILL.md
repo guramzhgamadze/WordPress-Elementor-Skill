@@ -41,6 +41,7 @@ for the task at hand.
 | **Subversion (SVN)** — deploying/tagging a release on the wordpress.org plugin/theme SVN (trunk/tags/assets), the daily work cycle, branching/merging, properties, repo admin | **svn/svn.md** (self-contained sub-bundle; `svn/references/` goes deeper) |
 | **Debugging & static analysis** — PHPCS+WPCS, PHPStan, Plugin Check, `WP_DEBUG`/Query Monitor, Elementor Safe Mode/cache, symptom→cause table | **debugging.md** |
 | **Common WordPress APIs** — admin settings page (Settings + Options API), `register_meta`, roles/capabilities, WP-Cron, internationalization (i18n) | **wordpress-apis.md** |
+| **Database layer (MariaDB/MySQL)** — custom tables + `dbDelta()`, charsets & the `varchar(191)` index rule, indexes, `EXPLAIN`, MariaDB↔MySQL portability, `sql_mode`, full-text | **mariadb.md** |
 
 ### Widget Boilerplates — Load when building a widget of that type
 
@@ -342,6 +343,10 @@ activate plugin, clear Elementor cache, etc.
 | Store plugin options | Options API + explicit boolean `autoload` (WP 6.6+) | wordpress-apis.md |
 | Custom field exposed to REST / Elementor | `register_post_meta` + `show_in_rest` | wordpress-apis.md |
 | Scheduled / background task | WP-Cron (`wp_schedule_event`) + Action Scheduler for heavy jobs | wordpress-apis.md |
+| Create a custom DB table | `dbDelta()` + `$wpdb->prefix` + `get_charset_collate()`; strict formatting rules | mariadb.md |
+| "Specified key was too long" / emoji not saving | `utf8mb4` + index string columns at **`varchar(191)`** | mariadb.md |
+| Slow query / missing index | `EXPLAIN` (`type: ALL`, `key: NULL`, `Using filesort`) + leftmost-prefix rule | mariadb.md |
+| SQL that must run on MariaDB **and** MySQL | Plain standard SQL; JSON is stored/compared differently — don't query inside it | mariadb.md |
 | Make a plugin translatable | i18n functions + text-domain = slug + WP 6.7 `init`-timing rule | wordpress-apis.md |
 | Ship a translation for a wp.org-hosted plugin | `.pot` only in the zip; translate.wordpress.org → language packs (90% gate). **Never** bundle `.mo` / call `load_plugin_textdomain()` | wordpress-apis.md |
 | Style UI text for non-Latin locales | Caseless scripts + `text-transform`/`letter-spacing`; don't size to English string length | js-css-standards.md |

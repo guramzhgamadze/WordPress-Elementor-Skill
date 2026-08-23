@@ -154,6 +154,9 @@ Every item below cost a review round on a live wp.org submission:
 - **Exception messages are "output".** `throw new RuntimeException( "… $var" )` flags
   `EscapeOutput.ExceptionNotEscaped` — wrap the message (or its interpolated parts) in
   `esc_html()`.
+- **Schema and index questions are a different file.** These sniffs are about *suppression*; for
+  the `CREATE TABLE` / `dbDelta()` rules, the `varchar(191)` index limit, `EXPLAIN` output and
+  MariaDB↔MySQL portability, see **`mariadb.md`**.
 - **Core-private functions are forbidden.** E.g. `wp_get_sidebars_widgets()` is `@access private`
   — use `apply_filters( 'sidebars_widgets', get_option( 'sidebars_widgets', [] ) )` instead (and
   the re-applied CORE filter then needs a justified `NonPrefixedHooknameFound` ignore).

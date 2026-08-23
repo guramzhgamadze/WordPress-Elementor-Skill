@@ -47,6 +47,12 @@
 - [ ] Transient keys are ≤ 172 characters — dynamic keys use `md5()` to prevent silent cache misses
 - [ ] No `SELECT *` — use `$wpdb->get_results` with explicit column names
 - [ ] No queries inside loops — pre-fetch with a single WP_Query, then loop results
+- [ ] **Slow query → run `EXPLAIN` before guessing.** `type: ALL` or `key: NULL` on a large table
+      means no index is being used; `Using filesort` / `Using temporary` mean the sort or grouping
+      isn't served by one. Composite indexes only apply **leftmost-first**, and `LIKE '%term%'`
+      can never use a BTREE index. Full column/index reference: **`mariadb.md`** §4–§5.
+- [ ] Custom tables: index what you **filter, join and sort** on — and no more; every index is a
+      write tax on `INSERT`/`UPDATE`/`DELETE` (`mariadb.md` §4)
 - [ ] **WP 7.0 Real-Time Collaboration (RTC) — scope your queries:** WP 7.0 (released May 20,
       2026) stores RTC collaboration data in a **dedicated core database table**, not in
       `wp_posts`/`wp_post_meta`. (An earlier `wp_sync_storage` post-meta design was rejected;
