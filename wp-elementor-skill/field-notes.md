@@ -203,6 +203,14 @@ exam app).
   same way as for the theme — `.my-panel h2.my-panel__title`, `.my-panel button.my-panel__copy`
   (0-2-1) — still far below the 0-4-0 a control writes. Diagnose it by listing every rule that
   matches the element and sets the property, rather than assuming your class won.
+- **`rem` is right for TYPE and wrong for a TAP TARGET.** The rule above still holds for text, but
+  a 44px minimum touch target written as `2.75rem` inherits whatever the theme does to the root font
+  size — and plenty of themes shrink it on small screens. Measured on one: the icon buttons came out
+  **44x44 on desktop and 40x40 at 375px**, i.e. below the minimum *precisely* where fingers are used
+  and nowhere else. Nothing in the editor shows it, because the desktop preview is correct. Write
+  physical minimums in **px** (`var(--x-box, 44px)`), keep the token so a control can still override
+  it in any unit, and check the computed box at a mobile width rather than trusting the desktop
+  number.
 - **Size a widget's own UI in `rem`, never `em`.** `em` multiplies whatever the page inherits, and
   a theme or kit that sets a large base silently scales your whole component: `font-size: 0.95em`
   intended as ~15px computed to **22px** because the page's base was 23px. A panel or dialog should
@@ -498,6 +506,22 @@ exam app).
 ---
 
 ## 11. Verification reality
+
+- **A scripted patch anchored on a bare `function foo(` signature STEALS that function's docblock.**
+  Inserting new code immediately before a function signature puts the new function *between* the
+  existing docblock and the function it documents: the old function is left undocumented and the new
+  one wears two docblocks stacked. `php -l` passes, the code runs, and every structural grep is
+  happy — only PHPCS (`Squiz.Commenting.FunctionComment.Missing`) sees it. It happened three times in
+  one change because the same anchoring style was reused. Anchor on the **docblock opener** (`/**\n
+  * The thing.`) rather than the signature, or assert afterwards that the file contains no `*/`
+  immediately followed by `/**`.
+- **A `case` block that references the wrong variable fails SILENTLY and shaped like success.**
+  `substr( $key, … )` inside a function whose parameter is `$field` yields `''`, so an array lookup
+  built from it returns `''` and every placeholder rendered empty — a warning in the log and nothing
+  visibly broken. `php -l`, a call-type checker and every "is the case block present?" grep all pass,
+  because the block *is* present. Only rendering the markup with `display_errors` on showed it.
+  Assert on the **resolved value** (`attrs['placeholder'] === $expected`), never on the presence of
+  the code that computes it.
 
 - **`php -l` / `node --check` prove syntax only.** They do **not** catch typed-signature
   mismatches (a fatal — see §1), missing/ineffective controls, leaked filters, or any runtime
