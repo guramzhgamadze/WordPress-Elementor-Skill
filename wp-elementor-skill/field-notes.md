@@ -194,6 +194,35 @@ exam app).
   `.my-widget button.my-chip:hover` — which still sits far below Elementor's generated
   `.elementor-{id} .elementor-element.elementor-element-{id} .sel` (0-4-0+), so the controls keep
   winning. Reach for `!important` only after this fails; it would also lock the user's controls out.
+- **Elementor's GLOBAL KIT styles bare elements, and it beats your bare class.** Separate from the
+  theme trap above: the active kit emits `.elementor-kit-{id} h2`, `.elementor-kit-{id} button`,
+  `… input`, `… select` at **0-1-1**, so `.my-widget__title` (0-1-0) loses and your heading takes
+  the kit's size, not yours. Measured on a dialog inside a widget: the heading resolved to **24px**
+  and the buttons to **22px** against the ~15px the stylesheet asked for — which then wrapped a
+  two-word button label onto two lines and read as "my CSS is being ignored". Element-qualify the
+  same way as for the theme — `.my-panel h2.my-panel__title`, `.my-panel button.my-panel__copy`
+  (0-2-1) — still far below the 0-4-0 a control writes. Diagnose it by listing every rule that
+  matches the element and sets the property, rather than assuming your class won.
+- **Size a widget's own UI in `rem`, never `em`.** `em` multiplies whatever the page inherits, and
+  a theme or kit that sets a large base silently scales your whole component: `font-size: 0.95em`
+  intended as ~15px computed to **22px** because the page's base was 23px. A panel or dialog should
+  set its own base (`font-size: 0.95rem`) and size its children in `rem` too, so it is predictable
+  on any theme while still following the reader's root size.
+- **A `::before` scrim on an element that establishes a stacking context paints OVER it, not
+  behind.** Within a stacking context the paint order is: the element's own background and borders
+  FIRST, then negative-`z-index` children. So a popup styled
+  `.panel { position: fixed; z-index: 10; transform: … }` with
+  `.panel::before { position: fixed; inset: 0; z-index: -1; background: rgba(0,0,0,.45) }` tints
+  **the panel itself** — the card renders grey with washed-out controls and it looks like a colour
+  bug, not a layering one. A backdrop must be a **sibling element** one layer below, never a
+  pseudo-element of the thing it is meant to sit behind.
+- **`overflow: hidden` on a card clips any popover you position inside it.** A hero/card that clips
+  its image to a rounded corner also clips an absolutely-positioned dropdown, share panel or
+  tooltip rendered within it — measured: a 164px panel inside a 229px hero, cut off at the card's
+  edge. `position: fixed` escapes an ancestor's overflow, but **only if no ancestor establishes a
+  containing block**: any `transform`, `filter`, `perspective`, `backdrop-filter`,
+  `will-change: transform` or `contain: paint` on the way up re-anchors the fixed element and the
+  clipping returns. Walk the ancestor chain and check for those before relying on it.
 - **`container-type: inline-size` can inflate the widget wrapper to tens of thousands of pixels.**
   Inside Elementor's nested flex containers (`.e-con` → `.e-con-inner` → `.elementor-element`),
   Chromium computed the widget wrapper at **62,926px against 4,867px of real content** — ~58,000px
