@@ -27,6 +27,45 @@ place instead of being scattered across the sub-files.
 
 ## Audit rounds
 
+### Round 36 — September 14, 2026 — holding a login, fragment re-rendering, and two harnesses that lie
+Mined from shipping Zen Login & Authentication 2.3.2. Three additions to `field-notes.md`, no new
+files (count stays at **55**).
+
+- **§6, new subsection — "Holding a login … is not a failed login."** `wp_authenticate()` fires
+  `wp_login_failed` for **every** `WP_Error` returned from the `authenticate` filter except the two
+  codes in its own allowlist (`empty_username`, `empty_password`), and it reads `get_error_code()`
+  — the *first* code only. So the instant you hold a login for a second factor, a device
+  confirmation or a terms gate, a **correct password** is counted as a failure by your activity
+  log, your per-account throttle and every security plugin on the site. Nobody reports it as a bug,
+  because signing in still works; it shows up weeks later as a dashboard full of failures for
+  people who did nothing wrong, and a progressive throttle adding seconds after the free allowance
+  is spent on *successful* sign-ins. Documents the fix (listeners registered with
+  `accepted_args` of 2 so they can see the `WP_Error` core has passed since 5.4, then skip your own
+  hand-off code), the follow-on that is always missing — firing `wp_login_failed` yourself for a
+  genuinely wrong second factor, which is otherwise recorded nowhere, leaving the log exactly
+  backwards — and why `exit`-ing from the filter to dodge the hook is the wrong fix: it skips every
+  later-priority `authenticate` filter, trading a miscount for a security hole.
+- **§12, new lead-in — "re-render the real page and swap a fragment."** An AJAX/REST handler that
+  returns HTML is a *second renderer* running without the page that called it, so a widget's
+  Content-tab text overrides — applied by add-filter/render/remove-filter around `render()` — are
+  simply absent, and the panel reverts to the translated default the first time a user touches it.
+  The alternative: mark the request, have the handler act and **return instead of redirecting**,
+  let WordPress render the page normally, and swap one element's `innerHTML` client-side. Covers
+  the flash helper that lets PRG and fragment paths share one state lookup; the refactor hazard
+  that a helper which used to `exit` now falls through (add `return;` at every call site); the
+  asymmetric failure rule — re-submit only if the response never arrived, else reload, or the
+  action repeats; delegated binding that survives the swap; and `REQUEST_METHOD`-gating the marker.
+- **§11, two more harness traps.** (a) **WP-CLI cannot test code that stands down under WP-CLI, and
+  it fails green.** Auth guards bail for `REST_REQUEST` / `XMLRPC_REQUEST` /
+  `application_password_did_authenticate` / `wp_doing_cron()` / `WP_CLI`, so under `wp eval-file`
+  the branch never runs and every *"X did not happen"* assertion passes having exercised nothing —
+  identically to how it would pass with the fix reverted. Grep for those constants first; drive it
+  over HTTP with a `wp-load.php` probe otherwise, and print which context ran. (b) **Run Plugin
+  Check against what ships**, not the working tree, or `hidden_files` / `application_detected` /
+  `unexpected_markdown_file` noise from `.gitignore`, `phpunit.xml.dist` and `CLAUDE.md` buries the
+  real findings.
+- `SKILL.md` router row for `field-notes.md` extended with the login-holding topic.
+
 ### Round 35 — August 23, 2026 — new file: the database layer (`mariadb.md`)
 Sourced from the official **MariaDB Knowledge Base** (mariadb.com/kb) plus the WordPress plugin
 handbook. **File count 54 → 55** (15 core reference files + 35 widget boilerplates + the 5-file SVN

@@ -379,6 +379,45 @@ exam app).
   (Post/Redirect/Get), then read-and-`delete_transient()` on display — it shows once, never
   again.
 
+### Holding a login (2FA, device confirmation, terms acceptance) is not a failed login
+
+- **Returning a `WP_Error` from `authenticate` makes core fire `wp_login_failed`.**
+  `wp_authenticate()` ends with an allowlist of exactly two codes —
+  `array( 'empty_username', 'empty_password' )` — and fires the hook for **every** other error
+  code. So the moment you hold a login for a second step, everything that listens for brute force
+  counts a correct password as a failure: your own activity log, your own per-account throttle,
+  and every security plugin on the site. `get_error_code()` is consulted, i.e. the **first** code
+  only.
+- **The symptom is a slow poison, not a bug report.** The user signs in fine, so nothing looks
+  broken; the login-activity dashboard just fills with failures for people who did nothing wrong,
+  and a progressive throttle starts adding seconds after the free allowance (three, typically) is
+  spent on successful sign-ins. It surfaces as *"why does my dashboard say I keep failing?"* weeks
+  later.
+- **Fix by discriminating, not by silencing.** `wp_login_failed` passes the `WP_Error` as its
+  **second** argument (core has done so since 5.4), but listeners registered with `accepted_args`
+  of 1 never see it. Register yours with 2 and skip your own hand-off code:
+  ```php
+  add_action( 'wp_login_failed', 'prefix_record_failed', 10, 2 );
+  function prefix_record_failed( $username, $error = null ): void {
+      if ( $error instanceof WP_Error
+          && in_array( 'prefix_2fa_required', $error->get_error_codes(), true ) ) {
+          return; // a correct password waiting on its second step
+      }
+      …
+  }
+  ```
+- **Then count the step that really does fail.** Having excluded the hand-off, the *wrong* second
+  factor is usually recorded nowhere — the dashboard ends up exactly backwards. Fire
+  `wp_login_failed` yourself from the verification handler with your own error code (the
+  Two-Factor feature plugin does the same), so the log, the throttle and third-party brute-force
+  plugins all see the real attempt.
+- **Don't `exit` from the filter to dodge the hook.** Redirecting out of `authenticate` skips
+  every filter registered at a later priority, including other plugins' post-password checks —
+  you would be trading a miscount for a security hole. Return the `WP_Error` and discriminate.
+- **Audit every path, not the one you were shown.** A plugin that intercepts both its own form and
+  `wp-login.php` usually handles them differently (one returns the error, one redirects), so only
+  one path miscounts — and the two disagree about what happened until you fix it.
+
 ---
 
 ## 7. Transactional email (`wp_mail`)
@@ -600,10 +639,82 @@ exam app).
   multibyte UTF-8 (`head -c`/`tail -c` cuts a Georgian/emoji char mid-byte → looks like
   corruption), or a stub that flags on the wrong condition produce confident **false alarms**.
   Verify the harness (paths, encodings, regex), then the file.
+- **WP-CLI cannot test code that stands down under WP-CLI — and it fails *green*.** Auth and
+  security guards routinely open with a bail for non-interactive contexts:
+  `REST_REQUEST`, `XMLRPC_REQUEST`, `application_password_did_authenticate`, `wp_doing_cron()`,
+  `defined( 'WP_CLI' ) && WP_CLI`. Correct code — none of those has a second factor — but it means
+  the branch never executes under `wp eval-file`, and every assertion of the form *"X did not
+  happen"* passes having exercised nothing. Such a test passes identically with the fix reverted.
+  Before writing one, grep the function under test for those constants; if any appears, drive it
+  over HTTP instead: a probe in the webroot that does `require __DIR__ . '/wp-load.php'`, fetched
+  with `curl` and deleted afterwards. Print `defined( 'WP_CLI' ) ? 'yes' : 'no'` in its output so
+  the transcript proves which context ran, set `$_SERVER['REQUEST_METHOD'] = 'POST'` and populate
+  `$_POST` to stand in for a form submission — and pair every "did not happen" with a control that
+  **does** (a wrong password that still logs and still counts).
+- **Run Plugin Check against what ships, not your working tree.** Copying the dev tree into a
+  local WP makes it report `hidden_files` / `application_detected` / `unexpected_markdown_file` for
+  `.gitignore`, `phpunit.xml.dist`, `CLAUDE.md` and friends — files `export-ignore` and
+  `.gitignore` keep out of the package anyway. Those findings are noise that hides the real ones.
+  Deploy only the shipped set (take it from the SVN trunk listing, don't retype it), empty the
+  destination first, and assert nothing extra arrived.
 
 ---
 
 ## 12. Re-rendering a widget out of band (AJAX / REST) and in loops
+
+### Before building an AJAX endpoint: consider re-rendering the real page and swapping a fragment
+
+An admin-ajax or REST handler that returns HTML is a **second renderer**, and it runs without the
+page that made it. For a panel inside a widget that is the wrong trade, because the widget's own
+settings are exactly what is missing:
+
+- **Editor text overrides are invisible to a background handler.** A widget that applies its
+  Content-tab overrides by adding filters around its own `render()` (add → render → remove) has
+  none of them active inside admin-ajax: there is no widget instance and no settings. The endpoint
+  returns the *translated default* instead of the site owner's wording, and the panel silently
+  reverts to English the first time the user touches it. The same applies to anything else
+  resolved at render time — conditional enqueues, `{{WRAPPER}}` CSS, `the_content` filters, locale.
+- **The alternative: post the form to the page's own URL and swap one element.** Mark the request
+  (`prefix_fragment=1`), have the handler do its work and **return instead of redirecting**, let
+  WordPress render the page exactly as it always does, then client-side parse the response and
+  replace one container's `innerHTML`:
+  ```js
+  const res  = await fetch( pageUrl, { method: 'POST', body: fd, credentials: 'same-origin' } );
+  const doc  = new DOMParser().parseFromString( await res.text(), 'text/html' );
+  target.innerHTML = doc.querySelector( '.prefix-panel-body' ).innerHTML;
+  ```
+  There is no second renderer, so the swapped markup **cannot** drift from what a reload produces.
+- **Cost is one extra page render** — for a logged-in account page that is nothing, and it buys
+  every filter, override and translation for free. Weigh it against maintaining a parallel HTML
+  builder forever.
+- **Carry the state flag in the request, not the URL.** The PRG path signals results with a query
+  arg (`?prefix_codes=1`); with the redirect skipped there is no query string. Give the renderers
+  one lookup that falls back to `$_GET`, so both paths read the same way:
+  ```php
+  function prefix_flash( string $key, ?bool $set = null ): bool {
+      static $flags = [];
+      if ( null !== $set ) { return $flags[ $key ] = $set; }
+      return $flags[ $key ] ?? ( '' !== (string) prefix_get( $key, 'get' ) );
+  }
+  ```
+- **A helper that used to `exit` now returns — add `return;` at every call site.** PRG helpers are
+  written as `prefix_redirect( … );` with no `return` after them because they never came back.
+  Make one return and the code below it runs: the "invalid, bounce back" branch falls through into
+  the success branch. Grep every call, not just the ones you edited.
+- **Failure handling is asymmetric, and getting it wrong repeats the action.** If the request
+  never completed the server did nothing — fall back to `form.submit()`. Once a response has
+  arrived the server *has* acted, so a later error must `location.reload()`, never re-post; a
+  second submit regenerates recovery codes, sends a second email, charges twice. Set a flag the
+  moment the response lands and branch on it in `catch`.
+- **Bind the submit handler on the container, delegated**, so it survives the swap; clear any
+  "already bound" marker you keep on that container, and re-run whatever initialised the old
+  markup (QR drawing, copy buttons). Guard re-entry with a `data-busy` attribute — a disabled
+  button is not enough when Enter also submits.
+- **Progressive enhancement is the whole point:** the same form still posts normally with no
+  JavaScript, and both paths must be tested. `curl` the form without the marker (expect `302` +
+  the flag in `Location`) and with it (expect `200` and the new content in the body).
+- **`$_SERVER['REQUEST_METHOD']`-gate the marker.** A forged `GET ?prefix_fragment=1` must not
+  reach a state-changing handler.
 
 - **A background request has no page.** `get_the_ID()`, `$wp_query`, `is_singular()` and the
   permalink of "the current page" are all absent inside a REST or admin-ajax handler. Any query
